@@ -1,39 +1,41 @@
 <template>
+  <div class="card">
+    <h3>
+      {{ title }}
+    </h3>
 
-<div class="card">
-
-<h2>{{ title }}</h2>
-
-<h1>{{ value }}</h1>
-
-</div>
-
+    <p>
+      {{ value }}
+    </p>
+  </div>
 </template>
 
 <script setup>
-
 defineProps({
+  title: String,
 
-title: String,
-
-value: Number,
-
+  value: Number,
 })
-
 </script>
 
 <style scoped>
+.card {
+  width: 220px;
 
-.card{
+  padding: 20px;
 
-border:1px solid #ddd;
+  border: 1px solid #ddd;
 
-padding:20px;
-
-border-radius:10px;
-
-width:200px;
-
+  border-radius: 8px;
 }
 
+h3 {
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 28px;
+
+  font-weight: bold;
+}
 </style>

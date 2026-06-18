@@ -1,153 +1,96 @@
 <template>
+  <div class="card">
+    <h2>Step 3: Agreement Details</h2>
 
-<div>
+    <div class="field">
+      <label>Purpose</label>
 
-<h2>Step 3: Agreement Details</h2>
+      <input v-model="agreementData.purpose" placeholder="Agreement purpose" />
+    </div>
 
-<br>
+    <div class="field">
+      <label>IP Protection</label>
 
-<label>Purpose</label>
+      <select v-model="agreementData.ip_protection">
+        <option value="">Select</option>
 
-<input
+        <option>Yes</option>
 
-v-model="agreementData.purpose"
+        <option>No</option>
+      </select>
+    </div>
 
-placeholder="Agreement purpose"
+    <div class="field">
+      <label>Governing Law</label>
 
-/>
+      <input v-model="agreementData.governing_law" placeholder="Country or State" />
+    </div>
 
-<br><br>
+    <div class="field">
+      <label>Start Date</label>
 
-<label>IP Protection</label>
+      <input type="date" v-model="agreementData.start_date" />
+    </div>
 
-<select v-model="agreementData.ip_protection">
+    <div class="field">
+      <label>End Date</label>
 
-<option value="">
+      <input type="date" v-model="agreementData.end_date" @change="calculateDuration" />
+    </div>
 
-Select
+    <h3>
+      Duration:
 
-</option>
+      {{ agreementData.duration }}
 
-<option>
-
-Yes
-
-</option>
-
-<option>
-
-No
-
-</option>
-
-</select>
-
-<br><br>
-
-<label>Governing Law</label>
-
-<input
-
-v-model="agreementData.governing_law"
-
-placeholder="Country or State"
-
-/>
-
-<br><br>
-
-<label>Start Date</label>
-
-<input
-
-type="date"
-
-v-model="agreementData.start_date"
-
-/>
-
-<br><br>
-
-<label>End Date</label>
-
-<input
-
-type="date"
-
-v-model="agreementData.end_date"
-
-@change="calculateDuration"
-
-/>
-
-<br><br>
-
-<h3>
-
-Duration:
-
-{{ agreementData.duration }}
-
-days
-
-</h3>
-
-<pre>
-
-{{ agreementData }}
-
-</pre>
-
-</div>
-
+      days
+    </h3>
+  </div>
 </template>
 
 <script setup>
+import { agreementData } from '../../stores/agreementStore'
 
-import { agreementData }
+function calculateDuration() {
+  if (agreementData.start_date && agreementData.end_date) {
+    const start = new Date(agreementData.start_date)
 
-from '../../stores/agreementStore'
+    const end = new Date(agreementData.end_date)
 
-function calculateDuration(){
+    const difference = end - start
 
-if(
-
-agreementData.start_date
-
-&&
-
-agreementData.end_date
-
-){
-
-const start = new Date(
-
-agreementData.start_date
-
-)
-
-const end = new Date(
-
-agreementData.end_date
-
-)
-
-const difference =
-
-end - start
-
-agreementData.duration =
-
-Math.ceil(
-
-difference /
-
-(1000*60*60*24)
-
-)
-
+    agreementData.duration = Math.ceil(difference / (1000 * 60 * 60 * 24))
+  }
 }
-
-}
-
 </script>
+
+<style scoped>
+.card {
+  padding: 20px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 8px;
+}
+
+.field {
+  display: flex;
+
+  flex-direction: column;
+
+  margin-bottom: 20px;
+}
+
+input,
+select {
+  width: 300px;
+
+  padding: 10px;
+
+  border: 1px solid #ccc;
+
+  border-radius: 6px;
+
+  font-size: 14px;
+}
+</style>

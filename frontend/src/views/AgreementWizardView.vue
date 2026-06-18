@@ -1,47 +1,32 @@
 <template>
+  <div>
+    <h1>Create New Agreement</h1>
 
-<div>
+    <WizardStepper />
 
-<h1>Create New Agreement</h1>
+    <hr />
 
-<WizardStepper />
+    <Step1Partner v-if="currentStep === 1" />
 
-<hr>
+    <Step2AgreementType v-if="currentStep === 2" />
 
-<Step1Partner v-if="currentStep === 1" />
+    <Step3AgreementDetails v-if="currentStep === 3" />
 
-<Step2AgreementType v-if="currentStep === 2" />
+    <Step4Review v-if="currentStep === 4" />
 
-<Step3AgreementDetails v-if="currentStep === 3" />
+    <Step5PdfPreview v-if="currentStep === 5" />
 
-<Step4Review v-if="currentStep === 4" />
+    <Step6SignSend v-if="currentStep === 6" />
 
-<Step5PdfPreview v-if="currentStep === 5" />
+    <div class="buttons">
+      <button @click="previousStep">Back</button>
 
-<Step6SignSend v-if="currentStep === 6" />
-
-<div class="buttons">
-
-<button @click="previousStep">
-
-Back
-
-</button>
-
-<button @click="nextStep">
-
-Next
-
-</button>
-
-</div>
-
-</div>
-
+      <button @click="nextStep">Next</button>
+    </div>
+  </div>
 </template>
 
 <script setup>
-
 import { ref } from 'vue'
 
 import WizardStepper from '../components/wizard/WizardStepper.vue'
@@ -60,38 +45,25 @@ import Step6SignSend from '../components/wizard/Step6SignSend.vue'
 
 const currentStep = ref(1)
 
-function nextStep(){
-
-if(currentStep.value < 6){
-
-currentStep.value++
-
+function nextStep() {
+  if (currentStep.value < 6) {
+    currentStep.value++
+  }
 }
 
+function previousStep() {
+  if (currentStep.value > 1) {
+    currentStep.value--
+  }
 }
-
-function previousStep(){
-
-if(currentStep.value > 1){
-
-currentStep.value--
-
-}
-
-}
-
 </script>
 
 <style scoped>
+.buttons {
+  margin-top: 30px;
 
-.buttons{
+  display: flex;
 
-margin-top:30px;
-
-display:flex;
-
-gap:10px;
-
+  gap: 10px;
 }
-
 </style>

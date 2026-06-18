@@ -1,97 +1,96 @@
 <template>
+  <div class="card">
+    <h2>Step 4: Review Agreement</h2>
 
-<div>
+    <div class="section">
+      <h3>Partner</h3>
 
-<h2>Step 4: Review Agreement</h2>
+      <p>{{ agreementData.counterparty_company }}</p>
+    </div>
 
-<hr>
+    <div class="section">
+      <h3>Initiator</h3>
 
-<h3>Partner</h3>
+      <p>Name: {{ agreementData.initiator_name }}</p>
 
-<p>{{ agreementData.partner }}</p>
+      <p>Title: {{ agreementData.initiator_title }}</p>
+    </div>
 
-<hr>
+    <div class="section">
+      <h3>Counterparty</h3>
 
-<h3>Initiator</h3>
+      <p>Name: {{ agreementData.counterparty_contact_name }}</p>
 
-<p>Name: {{ agreementData.initiator_name }}</p>
+      <p>Title: {{ agreementData.counterparty_contact_title }}</p>
 
-<p>Title: {{ agreementData.initiator_title }}</p>
+      <p>Email: {{ agreementData.counterparty_email }}</p>
 
-<hr>
+      <p>Phone: {{ agreementData.counterparty_phone }}</p>
+    </div>
 
-<h3>Counterparty</h3>
+    <div class="section">
+      <h3>Agreement Type</h3>
 
-<p>Name: {{ agreementData.counterparty_name }}</p>
+      <p>{{ agreementData.agreement_type }}</p>
+    </div>
 
-<p>Title: {{ agreementData.counterparty_title }}</p>
+    <div class="section">
+      <h3>Agreement Details</h3>
 
-<p>Email: {{ agreementData.counterparty_email }}</p>
+      <p>Purpose: {{ agreementData.purpose }}</p>
 
-<p>Phone: {{ agreementData.counterparty_phone }}</p>
+      <p>IP Protection: {{ agreementData.ip_protection }}</p>
 
-<hr>
+      <p>Governing Law: {{ agreementData.governing_law }}</p>
 
-<h3>Agreement Type</h3>
+      <p>Start Date: {{ agreementData.start_date }}</p>
 
-<p>{{ agreementData.agreement_type }}</p>
+      <p>End Date: {{ agreementData.end_date }}</p>
 
-<hr>
+      <p>Duration: {{ agreementData.duration }} days</p>
+    </div>
 
-<h3>Agreement Details</h3>
+    <div class="disclaimer">
+      <h3>Disclaimer</h3>
 
-<p>Purpose: {{ agreementData.purpose }}</p>
-
-<p>IP Protection: {{ agreementData.ip_protection }}</p>
-
-<p>Governing Law: {{ agreementData.governing_law }}</p>
-
-<p>Start Date: {{ agreementData.start_date }}</p>
-
-<p>End Date: {{ agreementData.end_date }}</p>
-
-<p>Duration: {{ agreementData.duration }} days</p>
-
-<hr>
-
-<div class="disclaimer">
-
-<h3>Disclaimer</h3>
-
-<p>
-
-Varmodel is not a law firm and does not provide legal advice.
-
-Users are encouraged to consult an attorney before executing agreements.
-
-Varmodel is not liable for omitted terms.
-
-</p>
-
-</div>
-
-</div>
-
+      <p>
+        Varmodel is not a law firm and does not provide legal advice. Users are encouraged to
+        consult an attorney before executing agreements. Varmodel is not liable for omitted terms.
+      </p>
+    </div>
+  </div>
 </template>
 
 <script setup>
-
-import { agreementData }
-
-from '../../stores/agreementStore'
-
+import { agreementData } from '../../stores/agreementStore'
 </script>
 
 <style scoped>
+.card {
+  padding: 20px;
 
-.disclaimer{
+  border: 1px solid #ddd;
 
-padding:15px;
+  border-radius: 8px;
 
-border:1px solid gray;
-
-margin-top:20px;
-
+  background: white;
 }
 
+.section {
+  margin-bottom: 25px;
+
+  padding-bottom: 15px;
+
+  border-bottom: 1px solid #ddd;
+}
+
+.disclaimer {
+  padding: 15px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 8px;
+
+  background: #fafafa;
+}
 </style>

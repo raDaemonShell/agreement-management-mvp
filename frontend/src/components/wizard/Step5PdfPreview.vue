@@ -1,107 +1,87 @@
 <template>
+  <div>
+    <h2>Step 5: PDF Preview</h2>
 
-<div>
+    <div class="pdf">
+      <h1>Agreement Preview</h1>
 
-<h2>Step 5: PDF Preview</h2>
+      <hr />
 
-<div class="pdf">
+      <h3>Partner</h3>
 
-<h1>Agreement Preview</h1>
+      <p>{{ agreementData.partner }}</p>
 
-<hr>
+      <hr />
 
-<h3>Partner</h3>
+      <h3>Initiator</h3>
 
-<p>{{ agreementData.partner }}</p>
+      <p>
+        {{ agreementData.initiator_name }}
 
-<hr>
+        -
 
-<h3>Initiator</h3>
+        {{ agreementData.initiator_title }}
+      </p>
 
-<p>
+      <hr />
 
-{{ agreementData.initiator_name }}
+      <h3>Counterparty</h3>
 
--
+      <p>
+        {{ agreementData.counterparty_name }}
 
-{{ agreementData.initiator_title }}
+        -
 
-</p>
+        {{ agreementData.counterparty_title }}
+      </p>
 
-<hr>
+      <p>
+        {{ agreementData.counterparty_email }}
+      </p>
 
-<h3>Counterparty</h3>
+      <hr />
 
-<p>
+      <h3>Agreement Type</h3>
 
-{{ agreementData.counterparty_name }}
+      <p>{{ agreementData.agreement_type }}</p>
 
--
+      <hr />
 
-{{ agreementData.counterparty_title }}
+      <h3>Agreement Details</h3>
 
-</p>
+      <p>Purpose: {{ agreementData.purpose }}</p>
 
-<p>
+      <p>IP Protection: {{ agreementData.ip_protection }}</p>
 
-{{ agreementData.counterparty_email }}
+      <p>Governing Law: {{ agreementData.governing_law }}</p>
 
-</p>
+      <p>Start Date: {{ agreementData.start_date }}</p>
 
-<hr>
+      <p>End Date: {{ agreementData.end_date }}</p>
 
-<h3>Agreement Type</h3>
+      <p>Duration: {{ agreementData.duration }} days</p>
 
-<p>{{ agreementData.agreement_type }}</p>
+      <hr />
 
-<hr>
+      <h3>Signature Area</h3>
 
-<h3>Agreement Details</h3>
+      <p>Initiator: __________________</p>
 
-<p>Purpose: {{ agreementData.purpose }}</p>
-
-<p>IP Protection: {{ agreementData.ip_protection }}</p>
-
-<p>Governing Law: {{ agreementData.governing_law }}</p>
-
-<p>Start Date: {{ agreementData.start_date }}</p>
-
-<p>End Date: {{ agreementData.end_date }}</p>
-
-<p>Duration: {{ agreementData.duration }} days</p>
-
-<hr>
-
-<h3>Signature Area</h3>
-
-<p>Initiator: __________________</p>
-
-<p>Counterparty: Awaiting signature</p>
-
-</div>
-
-</div>
-
+      <p>Counterparty: Awaiting signature</p>
+    </div>
+  </div>
 </template>
 
 <script setup>
-
-import { agreementData }
-
-from '../../stores/agreementStore'
-
+import { agreementData } from '../../stores/agreementStore'
 </script>
 
 <style scoped>
+.pdf {
+  border: 1px solid gray;
 
-.pdf{
+  padding: 25px;
 
-border:1px solid gray;
-
-padding:25px;
-
-background:white;
-
+  background: white;
 }
-
 </style>

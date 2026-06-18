@@ -1,38 +1,37 @@
 import { reactive } from 'vue'
 
 export const agreementData = reactive({
+  counterparty_company: '',
 
-counterparty_company:'',
+  initiator_name: '',
 
-initiator_name:'',
+  initiator_title: '',
 
-initiator_title:'',
+  counterparty_contact_name: '',
 
-counterparty_contact_name:'',
+  counterparty_contact_title: '',
 
-counterparty_contact_title:'',
+  counterparty_email: '',
 
-counterparty_email:'',
+  counterparty_phone: '',
 
-counterparty_phone:'',
+  agreement_type: '',
 
-agreement_type:'',
+  custom_document: null,
 
-custom_document:null,
+  purpose: '',
 
-purpose:'',
+  ip_protection: '',
 
-ip_protection:'',
+  governing_law: '',
 
-governing_law:'',
+  start_date: '',
 
-start_date:'',
+  end_date: '',
 
-end_date:'',
+  duration: '',
 
-duration:'',
+  initiator_signature: '',
 
-initiator_signature:'',
-
-expiry_days:14,
+  expiry_days: 14,
 })
