@@ -1,25 +1,33 @@
 from django.contrib import admin
 
-from .models import Agreement
+from .models import Agreement, Partner
 
 
 @admin.register(Agreement)
+
 class AgreementAdmin(admin.ModelAdmin):
 
     list_display = (
-        "title",
-        "agreement_type",
-        "status",
-        "counterparty_company",
-        "created_at",
-    )
-
-    search_fields = (
-        "title",
-        "counterparty_company",
+        'title',
+        'status',
+        'created_at'
     )
 
     list_filter = (
-        "status",
-        "agreement_type",
+        'status',
+    )
+
+
+@admin.register(Partner)
+
+class PartnerAdmin(admin.ModelAdmin):
+
+    list_display = (
+        'company_name',
+        'industry',
+        'location'
+    )
+
+    list_filter = (
+        'industry',
     )

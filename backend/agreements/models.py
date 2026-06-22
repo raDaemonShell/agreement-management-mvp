@@ -1,39 +1,38 @@
+from django.db import models
 import uuid
 
-from django.db import models
 
+class Partner(models.Model):
 
-class AgreementStatus(models.TextChoices):
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
 
-    DRAFT = "DRAFT", "Draft"
+    company_name = models.CharField(max_length=100)
 
-    SENT = "SENT", "Awaiting Signature"
+    industry = models.CharField(max_length=100)
 
-    SIGNED = "SIGNED", "Signed"
+    location = models.CharField(max_length=100)
 
-    EXPIRED = "EXPIRED", "Expired"
+    avatar = models.CharField(max_length=5)
 
-    CANCELLED = "CANCELLED", "Cancelled"
+    background = models.CharField(max_length=20)
 
-
-class AgreementType(models.TextChoices):
-
-    NDA = "NDA", "NDA"
-
-    MSA = "MSA", "MSA"
-
-    TEAMING = "TEAMING", "Teaming Agreement"
-
-    SUBCONTRACTOR = "SUBCONTRACTOR", "Subcontractor Agreement"
-
-    LICENSING = "LICENSING", "Licensing Agreement"
-
-    LOI = "LOI", "Letter Of Intent"
-
-    WORK_ORDER = "WORK_ORDER", "Work Order"
-
+    color = models.CharField(max_length=20)
 
 class Agreement(models.Model):
+
+    STATUS_CHOICES = [
+
+        ('DRAFT','Draft'),
+
+        ('SENT','Awaiting Signature'),
+
+        ('SIGNED','Signed')
+
+    ]
 
     id = models.UUIDField(
         primary_key=True,
@@ -42,54 +41,70 @@ class Agreement(models.Model):
     )
 
     title = models.CharField(
-        max_length=255
+        max_length=200
     )
 
-    agreement_type = models.CharField(
+    partner = models.ForeignKey(
+        Partner,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+
+    contact_name = models.CharField(
+        max_length=100
+    )
+
+    contact_title = models.CharField(
+        max_length=100
+    )
+
+    contact_email = models.EmailField()
+
+    contact_phone = models.CharField(
         max_length=30,
-        choices=AgreementType.choices
-    )
-
-    status = models.CharField(
-        max_length=20,
-        choices=AgreementStatus.choices,
-        default=AgreementStatus.DRAFT
+        blank=True
     )
 
     initiator_name = models.CharField(
-        max_length=255
+        max_length=100
     )
 
     initiator_title = models.CharField(
-        max_length=255
+        max_length=100
     )
 
-    counterparty_company = models.CharField(
-        max_length=255
+    agreement_type = models.CharField(
+        max_length=100
     )
 
-    counterparty_contact_name = models.CharField(
-        max_length=255
+    purpose = models.CharField(
+        max_length=100
     )
 
-    counterparty_contact_title = models.CharField(
-        max_length=255
+    intellectual_property = models.CharField(
+        max_length=100
     )
-
-    counterparty_email = models.EmailField()
 
     start_date = models.DateField()
 
     end_date = models.DateField()
 
+    governing_law = models.CharField(
+        max_length=100
+    )
+
+    link_expiration_days = models.IntegerField(
+        default=7
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='DRAFT'
+    )
+
     created_at = models.DateTimeField(
         auto_now_add=True
     )
 
-    updated_at = models.DateTimeField(
-        auto_now=True
-    )
-
-    def __str__(self):
-
-        return self.title
+    

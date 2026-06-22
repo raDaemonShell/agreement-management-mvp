@@ -4,12 +4,6 @@ import DashboardView from '../views/DashboardView.vue'
 
 import AgreementWizardView from '../views/AgreementWizardView.vue'
 
-import AgreementListView from '../views/AgreementListView.vue'
-
-import AgreementDetailView from '../views/AgreementDetailView.vue'
-
-import EditAgreementView from '../views/EditAgreementView.vue'
-
 const router = createRouter({
   history: createWebHistory(),
 
@@ -30,26 +24,11 @@ const router = createRouter({
       component: AgreementWizardView,
     },
 
+    // router/index.js
     {
-      path: '/agreements',
-
-      name: 'agreements',
-
-      component: AgreementListView,
-    },
-    {
-      path: '/agreements/:id',
-
-      name: 'agreement-detail',
-
-      component: AgreementDetailView,
-    },
-    {
-      path: '/agreements/:id/edit',
-
-      name: 'agreement-edit',
-
-      component: EditAgreementView,
+      path: '/sign/:id',
+      name: 'sign',
+      component: () => import('../views/AgreementGuestSignView.vue'),
     },
   ],
 })
