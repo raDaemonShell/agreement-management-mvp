@@ -53,6 +53,9 @@ function goToDashboard() {
 const agreement = ref({
   myCompany: 'TechVentures Inc',
   myCompanyLocation: 'San Francisco, CA',
+  myEmail: '',
+  myPhone: '',
+  myTitle: '',
   // Step 1
   partner: null,
   contactName: '',
@@ -93,6 +96,10 @@ async function generateAgreement() {
       contact_phone: agreement.value.contactPhone,
       initiator_name: agreement.value.initiatorName,
       initiator_title: agreement.value.initiatorTitle,
+      initiator_company: agreement.value.myCompany, // ← add
+      initiator_location: agreement.value.myCompanyLocation, // ← add
+      initiator_email: agreement.value.myEmail, // ← add
+      initiator_phone: agreement.value.myPhone, // ← add
       agreement_type: agreement.value.agreementType,
       purpose: agreement.value.purpose,
       intellectual_property: agreement.value.intellectualProperty,
@@ -102,7 +109,6 @@ async function generateAgreement() {
       link_expiration_days: agreement.value.linkExpirationDays,
       status: agreement.value.status,
     }
-
     const response = await createAgreement(payload)
 
     agreement.value.id = response.id

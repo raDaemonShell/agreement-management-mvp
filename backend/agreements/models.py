@@ -25,86 +25,40 @@ class Partner(models.Model):
 class Agreement(models.Model):
 
     STATUS_CHOICES = [
-
         ('DRAFT','Draft'),
-
         ('SENT','Awaiting Signature'),
-
         ('SIGNED','Signed')
-
     ]
 
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=200)
+    partner = models.ForeignKey(Partner, on_delete=models.SET_NULL, null=True)
 
-    title = models.CharField(
-        max_length=200
-    )
+    # Initiator
+    initiator_name = models.CharField(max_length=100)
+    initiator_title = models.CharField(max_length=100)
+    initiator_company = models.CharField(max_length=200, blank=True) 
+    initiator_location = models.CharField(max_length=200, blank=True) 
+    initiator_email = models.EmailField(blank=True)                   
+    initiator_phone = models.CharField(max_length=30, blank=True)    
 
-    partner = models.ForeignKey(
-        Partner,
-        on_delete=models.SET_NULL,
-        null=True
-    )
-
-    contact_name = models.CharField(
-        max_length=100
-    )
-
-    contact_title = models.CharField(
-        max_length=100
-    )
-
+    # Contact (counterparty)
+    contact_name = models.CharField(max_length=100)
+    contact_title = models.CharField(max_length=100)
     contact_email = models.EmailField()
+    contact_phone = models.CharField(max_length=30, blank=True)
 
-    contact_phone = models.CharField(
-        max_length=30,
-        blank=True
-    )
-
-    initiator_name = models.CharField(
-        max_length=100
-    )
-
-    initiator_title = models.CharField(
-        max_length=100
-    )
-
-    agreement_type = models.CharField(
-        max_length=100
-    )
-
-    purpose = models.CharField(
-        max_length=100
-    )
-
-    intellectual_property = models.CharField(
-        max_length=100
-    )
-
+    agreement_type = models.CharField(max_length=100)
+    purpose = models.CharField(max_length=100)
+    intellectual_property = models.CharField(max_length=100)
     start_date = models.DateField()
-
     end_date = models.DateField()
-
-    governing_law = models.CharField(
-        max_length=100
-    )
-
-    link_expiration_days = models.IntegerField(
-        default=7
-    )
+    governing_law = models.CharField(max_length=100)
+    link_expiration_days = models.IntegerField(default=7)
 
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='DRAFT'
     )
-
-    created_at = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    
+    created_at = models.DateTimeField(auto_now_add=True)

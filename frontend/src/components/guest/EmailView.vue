@@ -23,9 +23,9 @@
         </div>
 
         <div style="font-size: 13px; color: var(--neutral-7); line-height: 1.7" class="mb-4">
-          <strong style="color: var(--neutral-11)">{{ agreement.initiator_name }}</strong>
-          has sent you a partnership agreement for your review and signature on the Varmodel
-          platform.
+          <strong style="color: var(--neutral-11)">{{ agreement.initiator_name }}</strong> from
+          {{ agreement.initiator_company }} has sent you a partnership agreement for your review and
+          signature on the Varmodel platform.
         </div>
 
         <div class="vm-notice vm-notice--purple mb-4">

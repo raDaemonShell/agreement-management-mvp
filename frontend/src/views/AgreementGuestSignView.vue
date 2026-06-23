@@ -5,8 +5,8 @@
 
     <EmailView v-if="currentStep === 1" :agreement="agreement" @next="currentStep++" />
     <ReviewView v-if="currentStep === 2" :agreement="agreement" @next="currentStep++" />
-    <IdentityView v-if="currentStep === 3" :agreement="agreement" />
-    <SignView v-if="currentStep === 4" :agreement="agreement" />
+    <IdentityView v-if="currentStep === 3" :agreement="agreement" @next="currentStep++" />
+    <SignView v-if="currentStep === 4" :agreement="agreement" @next="currentStep++" />
     <ExecutedView v-if="currentStep === 5" :agreement="agreement" />
 
     <FootBarView

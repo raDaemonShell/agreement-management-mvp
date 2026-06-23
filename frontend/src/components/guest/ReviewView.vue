@@ -34,6 +34,7 @@
           <div class="doc-party">
             <div class="doc-party__badge">Disclosing party</div>
             <div class="doc-party__name">{{ agreement.initiator_company }}</div>
+            <div class="doc-party__loc">{{ agreement.initiator_location }}</div>
             <div class="doc-party__contact">
               <i class="ti ti-user" style="font-size: 10px"></i>
               {{ agreement.initiator_name }} &middot; {{ agreement.initiator_title }}
@@ -41,7 +42,8 @@
           </div>
           <div class="doc-party doc-party--you">
             <div class="doc-party__badge doc-party__badge--you">Receiving party (you)</div>
-            <div class="doc-party__name">{{ agreement.contact_name }}</div>
+            <div class="doc-party__name">{{ agreement.partner?.name }}</div>
+            <div class="doc-party__loc">{{ agreement.partner?.loc }}</div>
             <div class="doc-party__contact">
               <i class="ti ti-user" style="font-size: 10px"></i>
               {{ agreement.contact_name }} &middot; {{ agreement.contact_title }}
