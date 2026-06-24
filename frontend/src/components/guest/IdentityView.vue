@@ -1,4 +1,5 @@
 <template>
+  <div class="screen-strip">Screen 3 — Identity verification</div>
   <div class="page-wrap" v-if="agreement">
     <div class="vm-card">
       <div class="vm-card__header">
@@ -87,10 +88,6 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-
-const props = defineProps({
-  agreement: Object,
-})
 
 defineEmits(['next'])
 

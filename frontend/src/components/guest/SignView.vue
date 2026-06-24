@@ -1,4 +1,5 @@
 <template>
+  <div class="screen-strip">Screen 4 — Signature capture</div>
   <div class="page-wrap" v-if="agreement">
     <div class="vm-card">
       <div class="vm-card__header">

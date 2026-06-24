@@ -33,3 +33,9 @@ export async function updateAgreement(id, data) {
 
   return json
 }
+
+export async function getAgreementPdfUrl(id) {
+  const response = await fetch(`${API_URL}/agreements/${id}/download_pdf/`)
+  const json = await response.json()
+  return json.url
+}

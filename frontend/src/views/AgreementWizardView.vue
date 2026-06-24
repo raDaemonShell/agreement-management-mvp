@@ -53,9 +53,9 @@ function goToDashboard() {
 const agreement = ref({
   myCompany: 'TechVentures Inc',
   myCompanyLocation: 'San Francisco, CA',
-  myEmail: '',
-  myPhone: '',
-  myTitle: '',
+  myEmail: 'amatorioarjay@gmail.com',
+  myPhone: '99999999',
+  myTitle: 'CEO',
   // Step 1
   partner: null,
   contactName: '',
@@ -64,6 +64,7 @@ const agreement = ref({
   contactPhone: '',
   initiatorName: 'Your Name',
   initiatorTitle: 'Your Title',
+  initiatorSignedAt: null,
   // Step 2
   agreementType: '',
   agreementTypeTitle: '',
@@ -74,9 +75,18 @@ const agreement = ref({
   startDate: '',
   endDate: '',
   governingLaw: '',
+  //step4
+  sections: {
+    sec1: '',
+    sec2: '',
+    sec3: '',
+    sec4: '',
+    sec5: '',
+    sec6: '',
+  },
   // Step 6
   linkExpirationDays: 7,
-  // Backend
+
   status: 'DRAFT',
   // Set after save
   id: null,
@@ -84,6 +94,12 @@ const agreement = ref({
 })
 
 provide('agreement', agreement)
+
+function ensureInitiatorSignedAt() {
+  if (!agreement.value.initiatorSignedAt) {
+    agreement.value.initiatorSignedAt = new Date().toISOString()
+  }
+}
 
 async function generateAgreement() {
   try {
@@ -96,10 +112,10 @@ async function generateAgreement() {
       contact_phone: agreement.value.contactPhone,
       initiator_name: agreement.value.initiatorName,
       initiator_title: agreement.value.initiatorTitle,
-      initiator_company: agreement.value.myCompany, // ← add
-      initiator_location: agreement.value.myCompanyLocation, // ← add
-      initiator_email: agreement.value.myEmail, // ← add
-      initiator_phone: agreement.value.myPhone, // ← add
+      initiator_company: agreement.value.myCompany,
+      initiator_location: agreement.value.myCompanyLocation,
+      initiator_email: agreement.value.myEmail,
+      initiator_phone: agreement.value.myPhone,
       agreement_type: agreement.value.agreementType,
       purpose: agreement.value.purpose,
       intellectual_property: agreement.value.intellectualProperty,
@@ -122,9 +138,11 @@ async function generateAgreement() {
 
 async function sendForSignature() {
   try {
+    ensureInitiatorSignedAt()
     await updateAgreement(agreement.value.id, {
       status: 'SENT',
       link_expiration_days: agreement.value.linkExpirationDays,
+      initiator_signed_at: agreement.value.initiatorSignedAt,
     })
     agreement.value.status = 'SENT'
     currentStep.value++
@@ -139,13 +157,42 @@ async function nextStep() {
     return
   }
 
+  if (currentStep.value === 4) {
+    await saveSectionsAndGeneratePdf()
+    return
+  }
+
   if (currentStep.value === 6) {
     await sendForSignature()
     return
   }
 
+  if (currentStep.value === 7) {
+    router.push({ name: 'agreement-new' })
+    return
+  }
+
   if (currentStep.value < 7) {
     currentStep.value++
+  }
+}
+
+async function saveSectionsAndGeneratePdf() {
+  try {
+    ensureInitiatorSignedAt()
+    const sections = agreement.value.sections
+    await updateAgreement(agreement.value.id, {
+      section_1: sections.sec1,
+      section_2: sections.sec2,
+      section_3: sections.sec3,
+      section_4: sections.sec4,
+      section_5: sections.sec5,
+      section_6: sections.sec6,
+      initiator_signed_at: agreement.value.initiatorSignedAt,
+    })
+    currentStep.value++
+  } catch (err) {
+    console.error('Failed to save sections:', err)
   }
 }
 

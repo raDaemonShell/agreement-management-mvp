@@ -10,7 +10,9 @@
         <div class="sign-slot__label">Your signature — {{ agreement.initiatorName }}</div>
         <div class="sign-slot is-signed">
           <div class="sign-slot__name">{{ agreement.initiatorName }}</div>
-          <div class="sign-slot__status"><i class="ti ti-check"></i> Signed · Jun 1, 2026</div>
+          <div class="sign-slot__status">
+            <i class="ti ti-check"></i> Signed · {{ initiatorSignedLabel }}
+          </div>
         </div>
       </div>
       <div>
@@ -54,10 +56,25 @@
 </template>
 
 <script setup>
-import { inject, ref } from 'vue'
+import { inject, ref, computed, onMounted } from 'vue'
+import { formatSignedDate } from '../../utils/formatters'
 
 const agreement = inject('agreement')
 const copied = ref(false)
+
+function ensureInitiatorSignedAt() {
+  if (!agreement.value.initiatorSignedAt) {
+    agreement.value.initiatorSignedAt = new Date().toISOString()
+  }
+}
+
+const initiatorSignedLabel = computed(() =>
+  formatSignedDate(agreement.value.initiatorSignedAt || new Date()),
+)
+
+onMounted(() => {
+  ensureInitiatorSignedAt()
+})
 
 const expiryOptions = [
   { days: 3, label: '3 days' },

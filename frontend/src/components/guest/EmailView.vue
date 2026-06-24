@@ -1,4 +1,5 @@
 <template>
+  <div class="screen-strip">Screen 1 — Email notification received</div>
   <div class="page-wrap">
     <div class="d-flex align-center gap-2 mb-3" style="font-size: 11px; color: var(--neutral-6)">
       <i class="ti ti-inbox" style="font-size: 14px"></i> Inbox &mdash;

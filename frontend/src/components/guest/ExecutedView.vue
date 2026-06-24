@@ -1,4 +1,5 @@
 <template>
+  <div class="screen-strip">Screen 5 — Execution confirmed</div>
   <div class="page-wrap" v-if="agreement">
     <div class="vm-card">
       <div class="executed-header">

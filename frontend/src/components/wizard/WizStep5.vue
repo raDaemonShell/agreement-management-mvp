@@ -12,24 +12,15 @@
           <i class="ti ti-file-text" style="font-size: 16px; color: var(--neutral-6)"></i>
           {{ fileName }}<span class="pdf-toolbar__page">Page 1 of 2</span>
         </div>
-        <button class="vm-btn vm-btn--sm"><i class="ti ti-download"></i> Download draft</button>
+        <button class="vm-btn vm-btn--sm" @click="downloadPdf" :disabled="downloading">
+          <i class="ti ti-download"></i> {{ downloading ? 'Preparing...' : 'Download draft' }}
+        </button>
       </div>
       <div class="pdf-doc">
-        <div class="pdf-title">NON-DISCLOSURE AGREEMENT</div>
+        <div class="pdf-title">{{ pdfTitle }}</div>
         <div class="pdf-subtitle">
-          Generated via Varmodel · Draft ·
-
-          {{ agreement.startDate }}
-
-          -
-
-          {{ agreement.endDate }}
-
-          · Governed by
-
-          {{ agreement.governingLaw }}
-
-          law
+          Generated via Varmodel · Draft · {{ formattedStartDate }} - {{ formattedEndDate }} ·
+          Governed by {{ agreement.governingLaw }} law
         </div>
         <div class="pdf-parties">
           <div class="pdf-party">
@@ -55,92 +46,35 @@
         </div>
         <div class="pdf-sec">
           <div class="pdf-sec__title">1. Parties</div>
-          <div class="pdf-sec__body">
-            This
-
-            {{ agreement.agreementTypeTitle }}
-
-            is entered into between {{ agreement.myCompany }} and
-
-            {{ agreement.partner?.name }}
-
-            represented by
-
-            {{ agreement.initiatorName }}
-
-            and
-
-            {{ agreement.contactName }}.
-          </div>
+          <div class="pdf-sec__body">{{ agreement.sections.sec1 }}</div>
         </div>
         <div class="pdf-sec">
           <div class="pdf-sec__title">2. Confidential Information</div>
-          <div class="pdf-sec__body">
-            “Confidential Information” means any non-public information disclosed by either Party,
-            including trade secrets, business plans, financial data, and technical information in
-            any form…
-          </div>
+          <div class="pdf-sec__body">{{ agreement.sections.sec2 }}</div>
         </div>
         <div class="pdf-sec">
           <div class="pdf-sec__title">3. Obligations</div>
-          <div class="pdf-sec__body">
-            Each Party agrees to hold the other’s Confidential Information in strict confidence, use
-            it solely for the {{ agreement.purpose }}, and not disclose to any third party without
-            prior written consent…
-          </div>
+          <div class="pdf-sec__body">{{ agreement.sections.sec3 }}</div>
         </div>
         <div class="pdf-sec">
           <div class="pdf-sec__title">4. Term</div>
-          <div class="pdf-sec__body">
-            This Agreement shall remain in effect from {{ agreement.startDate }}
-
-            to
-
-            {{ agreement.endDate }}
-
-            governed by
-
-            {{ agreement.governingLaw }}
-
-            law.
-          </div>
+          <div class="pdf-sec__body">{{ agreement.sections.sec4 }}</div>
         </div>
         <div class="pdf-sec">
           <div class="pdf-sec__title">5. Remedies</div>
-          <div class="pdf-sec__body">
-            Each Party acknowledges that breach may cause irreparable harm, entitling the
-            non-breaching Party to seek equitable relief in addition to legal remedies…
-          </div>
+          <div class="pdf-sec__body">{{ agreement.sections.sec5 }}</div>
         </div>
         <div class="pdf-ai-block">
           <div class="pdf-ai-block__label">
             <i class="ti ti-sparkles"></i> Section 6 — Special provisions (AI-assisted)
           </div>
-          <div class="pdf-ai-block__body">
-            {{ agreement.partner?.name }}
-
-            will protect
-
-            {{ agreement.intellectualProperty }}
-
-            throughout the duration of this agreement for
-
-            {{ agreement.purpose }}
-
-            under
-
-            {{ agreement.governingLaw }}
-
-            law.
-          </div>
+          <div class="pdf-ai-block__body">{{ agreement.sections.sec6 }}</div>
         </div>
         <div class="pdf-sig-row">
           <div class="pdf-sig-box">
             <div class="pdf-sig-box__label">Signature — {{ agreement.myCompany }}</div>
             <div class="pdf-sig-box__name">{{ agreement.initiatorName }}</div>
-            <div class="pdf-sig-box__meta">
-              {{ agreement.initiatorTitle }} · Jun 1, 2026 · 10:42 AM PST
-            </div>
+            <div class="pdf-sig-box__meta">{{ initiatorSignedMeta }}</div>
           </div>
           <div class="pdf-sig-box">
             <div class="pdf-sig-box__label">Signature — {{ agreement.partner?.name }}</div>
@@ -160,15 +94,57 @@
 </template>
 
 <script setup>
-import { inject, computed } from 'vue'
+import { inject, computed, ref, onMounted } from 'vue'
+import { getAgreementPdfUrl } from '../../services/agreementService'
+import { formatInitiatorSignedMeta, formatSignedDate } from '../../utils/formatters'
 
 const agreement = inject('agreement')
+const downloading = ref(false)
+
+function ensureInitiatorSignedAt() {
+  if (!agreement.value.initiatorSignedAt) {
+    agreement.value.initiatorSignedAt = new Date().toISOString()
+  }
+}
+
+onMounted(() => {
+  ensureInitiatorSignedAt()
+})
+
+const initiatorSignedMeta = computed(() =>
+  formatInitiatorSignedMeta(
+    agreement.value.initiatorTitle,
+    agreement.value.initiatorSignedAt,
+  ),
+)
+
+const pdfTitle = computed(() => {
+  const title = agreement.value.agreementTypeTitle || 'Non-Disclosure Agreement'
+  return title.replace(/\s*\([^)]*\)/, '').trim().toUpperCase()
+})
+
+const formattedStartDate = computed(() =>
+  agreement.value.startDate ? formatSignedDate(agreement.value.startDate) : '',
+)
+
+const formattedEndDate = computed(() =>
+  agreement.value.endDate ? formatSignedDate(agreement.value.endDate) : '',
+)
+
+async function downloadPdf() {
+  downloading.value = true
+  try {
+    const url = await getAgreementPdfUrl(agreement.value.id)
+    window.open(url, '_blank')
+  } catch (err) {
+    console.error('Download error:', err)
+  } finally {
+    downloading.value = false
+  }
+}
 
 const fileName = computed(() => {
-  if (!agreement.value.agreementTypeTitle || !agreement.value.partner) {
-    return 'agreement.pdf'
-  }
-
+  if (!agreement.value.agreementTypeTitle || !agreement.value.partner) return 'agreement.pdf'
   return `${agreement.value.agreementTypeTitle} - ${agreement.value.partner.name}.pdf`
 })
 </script>

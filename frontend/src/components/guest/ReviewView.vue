@@ -1,4 +1,5 @@
 <template>
+  <div class="screen-strip">Screen 2 — Agreement review portal</div>
   <div class="page-wrap--wide">
     <div
       class="vm-notice vm-notice--purple"
@@ -128,7 +129,7 @@
             <div class="sig-slot__name">{{ agreement.initiator_name }}</div>
             <div class="sig-slot__meta">
               <i class="ti ti-check" style="font-size: 10px; color: #27500a"></i>
-              {{ sentDate }}
+              {{ initiatorSignedDate }}
             </div>
           </div>
           <div class="sig-slot sig-slot--you">
@@ -203,7 +204,9 @@ const fmt = (dateStr) =>
 
 const startDate = computed(() => fmt(props.agreement.start_date))
 const endDate = computed(() => fmt(props.agreement.end_date))
-const sentDate = computed(() => fmt(props.agreement.created_at))
+const initiatorSignedDate = computed(() =>
+  fmt(props.agreement.initiator_signed_at || props.agreement.created_at),
+)
 
 const expiryDate = computed(() => {
   const d = new Date(props.agreement.created_at)

@@ -1,51 +1,73 @@
-from rest_framework import viewsets
-from rest_framework.decorators import api_view
+from rest_framework import viewsets, status
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
-
+from django.conf import settings
 from .models import Agreement, Partner
-from .serializers import (
-    AgreementSerializer,
-    PartnerSerializer
-)
+from .serializers import AgreementSerializer, PartnerSerializer
+from .pdf_generator import generate_agreement_pdf
+import os
 
 
 @api_view(['GET'])
 def partner_list(request):
-
     partners = Partner.objects.all()
-
-    serializer = PartnerSerializer(
-        partners,
-        many=True
-    )
-
+    serializer = PartnerSerializer(partners, many=True)
     return Response(serializer.data)
-
-
-class AgreementViewSet(viewsets.ModelViewSet):
-
-    queryset = Agreement.objects.all().order_by(
-        '-created_at'
-    )
-
-    serializer_class = AgreementSerializer
 
 
 @api_view(['GET'])
 def dashboard_summary(request):
-
     return Response({
-
-        'draft': Agreement.objects.filter(
-            status='DRAFT'
-        ).count(),
-
-        'awaiting_signature': Agreement.objects.filter(
-            status='SENT'
-        ).count(),
-
-        'signed': Agreement.objects.filter(
-            status='SIGNED'
-        ).count(),
-
+        'draft': Agreement.objects.filter(status='DRAFT').count(),
+        'awaiting_signature': Agreement.objects.filter(status='SENT').count(),
+        'signed': Agreement.objects.filter(status='SIGNED').count(),
     })
+
+
+class AgreementViewSet(viewsets.ModelViewSet):
+    queryset = Agreement.objects.all().order_by('-created_at')
+    serializer_class = AgreementSerializer
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        try:
+            agreement = Agreement.objects.get(pk=response.data['id'])
+            generate_agreement_pdf(agreement)
+        except Exception as e:
+            print(f'PDF generation error: {e}')
+        return response
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        previous_status = instance.status
+        response = super().partial_update(request, *args, **kwargs)
+        instance.refresh_from_db()
+
+        if 'section_1' in request.data or 'initiator_signed_at' in request.data:
+            try:
+                generate_agreement_pdf(instance)
+            except Exception as e:
+                print(f'PDF generation error: {e}')
+
+        if previous_status != 'SENT' and instance.status == 'SENT':
+            try:
+                from .emails import send_agreement_emails
+                send_agreement_emails(instance)
+            except Exception as e:
+                print(f'Email error: {e}')
+
+        return response
+
+    @action(detail=True, methods=['get'])
+    def download_pdf(self, request, pk=None):
+        agreement = self.get_object()
+        pdf_path = os.path.join(settings.MEDIA_ROOT, 'agreements', f"{agreement.id}.pdf")
+        if not os.path.exists(pdf_path):
+            try:
+                generate_agreement_pdf(agreement)
+            except Exception as e:
+                return Response({'error': str(e)}, status=500)
+        pdf_url = request.build_absolute_uri(
+            f"{settings.MEDIA_URL}agreements/{agreement.id}.pdf"
+        )
+        return Response({'url': pdf_url})

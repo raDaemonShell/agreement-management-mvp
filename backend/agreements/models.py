@@ -56,9 +56,18 @@ class Agreement(models.Model):
     governing_law = models.CharField(max_length=100)
     link_expiration_days = models.IntegerField(default=7)
 
+    # Preview sections
+    section_1 = models.TextField(blank=True)
+    section_2 = models.TextField(blank=True)
+    section_3 = models.TextField(blank=True)
+    section_4 = models.TextField(blank=True)
+    section_5 = models.TextField(blank=True)
+    section_6 = models.TextField(blank=True)
+
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='DRAFT'
     )
+    initiator_signed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
