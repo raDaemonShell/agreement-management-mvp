@@ -55,48 +55,35 @@
         <div class="doc-sec">
           <div class="doc-sec__title">1. Parties</div>
           <div class="doc-sec__body">
-            This {{ agreementTypeTitle }} is entered into as of the date of last signature by
-            {{ agreement.initiator_company }}, represented by {{ agreement.initiator_name }} ({{
-              agreement.initiator_title
-            }}) (&ldquo;Disclosing Party&rdquo;), and {{ agreement.contact_name }}, represented by
-            {{ agreement.contact_name }} ({{ agreement.contact_title }}) (&ldquo;Receiving
-            Party&rdquo;), collectively the &ldquo;Parties.&rdquo;
+            {{ agreement.section_1 }}
           </div>
         </div>
 
         <div class="doc-sec">
           <div class="doc-sec__title">2. Confidential information</div>
           <div class="doc-sec__body">
-            &ldquo;Confidential Information&rdquo; means any non-public information disclosed by
-            either Party, including but not limited to trade secrets, business plans, financial
-            data, and technical information in any form&hellip;
+            {{ agreement.section_2 }}
           </div>
         </div>
 
         <div class="doc-sec">
           <div class="doc-sec__title">3. Obligations</div>
           <div class="doc-sec__body">
-            Each Party agrees to hold the other&rsquo;s Confidential Information in strict
-            confidence, use it solely for the {{ agreement.purpose }}, and not disclose to any third
-            party without prior written consent&hellip;
+            {{ agreement.section_3 }}
           </div>
         </div>
 
         <div class="doc-sec">
           <div class="doc-sec__title">4. Term</div>
           <div class="doc-sec__body">
-            This Agreement shall remain in effect from {{ startDate }} to {{ endDate }} ({{
-              duration
-            }}), governed by the laws of the State of {{ agreement.governing_law }}.
+            {{ agreement.section_4 }}
           </div>
         </div>
 
         <div class="doc-sec">
           <div class="doc-sec__title">5. Remedies</div>
           <div class="doc-sec__body">
-            Each Party acknowledges that breach may cause irreparable harm, entitling the
-            non-breaching Party to seek equitable relief in addition to legal remedies available at
-            law&hellip;
+            {{ agreement.section_5 }}
           </div>
         </div>
 
@@ -106,12 +93,7 @@
             provisions
           </div>
           <div class="doc-ai-block__body">
-            {{ agreement.initiator_company }} retains exclusive ownership of all
-            {{ agreement.intellectual_property }} disclosed during the {{ agreement.purpose }}.
-            {{ agreement.contact_name }} shall implement reasonable safeguards to prevent
-            unauthorized access. Derivative insights arising from shared information remain the sole
-            property of the originating Party for the duration of this Agreement under
-            {{ agreement.governing_law }} law.
+            {{ agreement.section_6 }}
           </div>
         </div>
 
@@ -154,8 +136,13 @@
           </div>
         </div>
 
-        <button class="vm-btn vm-btn--primary vm-btn--block mb-2" @click="$emit('next')">
-          <i class="ti ti-writing"></i> Proceed to sign
+        <button
+          class="vm-btn vm-btn--primary vm-btn--block mb-2"
+          @click="proceedToSign"
+          :disabled="sending"
+        >
+          <i class="ti ti-writing"></i>
+          {{ sending ? 'Sending code...' : 'Proceed to sign' }}
         </button>
         <button class="vm-btn vm-btn--block mb-3">
           <i class="ti ti-share"></i> Forward to attorney
@@ -179,13 +166,11 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
-const props = defineProps({
-  agreement: Object,
-})
-
-defineEmits(['next'])
+const props = defineProps({ agreement: Object })
+const emit = defineEmits(['next'])
+const sending = ref(false)
 
 const agreementTypeMap = {
   NDA: 'Non-Disclosure Agreement',
@@ -222,4 +207,20 @@ const duration = computed(() => {
   if (years >= 1) return `${years} year${years > 1 ? 's' : ''}`
   return `${days} days`
 })
+
+async function proceedToSign() {
+  sending.value = true
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/send_otp/`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' } },
+    )
+    if (!response.ok) throw new Error('Failed to send OTP')
+    emit('next')
+  } catch (err) {
+    console.error('OTP send error:', err)
+  } finally {
+    sending.value = false
+  }
+}
 </script>

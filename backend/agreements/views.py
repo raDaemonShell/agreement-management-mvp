@@ -5,6 +5,7 @@ from django.conf import settings
 from .models import Agreement, Partner
 from .serializers import AgreementSerializer, PartnerSerializer
 from .pdf_generator import generate_agreement_pdf
+from django.utils import timezone
 import os
 
 
@@ -71,3 +72,34 @@ class AgreementViewSet(viewsets.ModelViewSet):
             f"{settings.MEDIA_URL}agreements/{agreement.id}.pdf"
         )
         return Response({'url': pdf_url})
+    
+    @action(detail=True, methods=['post'])
+    def send_otp(self, request, pk=None):
+        agreement = self.get_object()
+        try:
+            from .emails import send_otp_email
+            send_otp_email(agreement)
+            return Response({'message': 'OTP sent'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+    @action(detail=True, methods=['post'])
+    def verify_otp(self, request, pk=None):
+        agreement = self.get_object()
+        code = request.data.get('code', '')
+
+        if not agreement.otp_code:
+            return Response({'error': 'No OTP generated'}, status=400)
+
+        if timezone.now() > agreement.otp_expires_at:
+            return Response({'error': 'OTP expired'}, status=400)
+
+        if code != agreement.otp_code:
+            return Response({'error': 'Invalid code'}, status=400)
+
+        # Clear OTP after successful verification
+        agreement.otp_code = ''
+        agreement.otp_expires_at = None
+        agreement.save(update_fields=['otp_code', 'otp_expires_at'])
+
+        return Response({'message': 'Verified'})

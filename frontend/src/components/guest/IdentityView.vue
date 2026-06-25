@@ -72,17 +72,26 @@
 
           <button
             class="vm-btn vm-btn--primary vm-btn--lg vm-btn--block mb-2"
-            @click="$emit('next')"
-            :disabled="!otpComplete"
-            :style="{ opacity: otpComplete ? 1 : 0.5 }"
+            @click="verifyAndContinue"
+            :disabled="!otpComplete || verifying"
+            :style="{ opacity: otpComplete && !verifying ? 1 : 0.5 }"
           >
-            <i class="ti ti-arrow-right" style="font-size: 16px"></i> Continue to signature
+            <i class="ti ti-arrow-right" style="font-size: 16px"></i>
+            {{ verifying ? 'Verifying...' : 'Continue to signature' }}
           </button>
+
+          <!-- error message -->
+          <div
+            v-if="otpError"
+            style="color: var(--color-danger); font-size: 12px; text-align: center; margin-top: 8px"
+          >
+            {{ otpError }}
+          </div>
           <div
             style="font-size: 10px; color: var(--neutral-6); text-align: center; margin-top: 6px"
           >
             Didn&rsquo;t receive the code?
-            <span style="color: var(--primary); cursor: pointer">Resend</span>
+            <span style="color: var(--primary); cursor: pointer" @click="resendOtp">Resend</span>
           </div>
         </div>
       </div>
@@ -93,16 +102,16 @@
 <script setup>
 import { ref, computed } from 'vue'
 
-defineProps({
-  agreement: Object,
-})
-
-defineEmits(['next'])
-
 const otp = ref(['', '', '', '', '', ''])
 const otpRefs = ref([])
+const verifying = ref(false)
+const otpError = ref('')
 
 const otpComplete = computed(() => otp.value.every((d) => d !== ''))
+const emit = defineEmits(['next'])
+const props = defineProps({
+  agreement: Object,
+})
 
 function handleOtpInput(event, index) {
   const val = event.target.value.replace(/\D/g, '')
@@ -117,5 +126,44 @@ function handleBackspace(event, index) {
     otp.value[index - 1] = ''
     otpRefs.value[index - 1]?.focus()
   }
+}
+async function verifyAndContinue() {
+  if (!otpComplete.value) return
+  verifying.value = true
+  otpError.value = ''
+
+  try {
+    const code = otp.value.join('')
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/verify_otp/`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      },
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      otpError.value = data.error || 'Invalid code. Please try again.'
+      return
+    }
+
+    emit('next')
+  } catch (err) {
+    console.error('OTP verification error:', err)
+    otpError.value = 'Something went wrong. Please try again.'
+  } finally {
+    verifying.value = false
+  }
+}
+async function resendOtp() {
+  await fetch(`http://127.0.0.1:8000/api/agreements/${props.agreement.id}/send_otp/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  })
+  otp.value = ['', '', '', '', '', '']
+  otpError.value = ''
 }
 </script>

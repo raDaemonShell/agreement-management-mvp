@@ -71,3 +71,7 @@ class Agreement(models.Model):
     )
     initiator_signed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # OTP email
+    otp_code = models.CharField(max_length=6, blank=True)
+    otp_expires_at = models.DateTimeField(null=True, blank=True)
