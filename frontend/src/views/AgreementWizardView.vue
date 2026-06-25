@@ -51,7 +51,7 @@ function goToDashboard() {
 }
 
 const agreement = ref({
-  myCompany: 'TechVentures Inc',
+  myCompany: 'Sony Inc.',
   myCompanyLocation: 'San Francisco, CA',
   myEmail: 'amatorioarjay@gmail.com',
   myPhone: '99999999',
