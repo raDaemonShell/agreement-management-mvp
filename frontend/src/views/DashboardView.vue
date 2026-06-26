@@ -18,22 +18,20 @@
 </template>
 
 <script setup>
+import { API_URL } from '../services/api'
 import DashboardHeader from '../components/dashboard/DashboardHeader.vue'
 import DashboardStatGrid from '../components/dashboard/DashboardStatGrid.vue'
 import DashboardTabs from '../components/dashboard/DashboardTabs.vue'
 import DashboardTable from '../components/dashboard/DashboardTable.vue'
 import { ref, onMounted, computed } from 'vue'
-import api from '../services/api'
 
 async function loadDashboard() {
-  const response = await api.get('dashboard/')
-
-  summary.value = response.data
+  const response = await fetch(`${API_URL}/dashboard/`)
+  summary.value = await response.json()
 }
 async function loadAgreements() {
-  const response = await api.get('/agreements/')
-
-  agreements.value = response.data
+  const response = await fetch(`${API_URL}/agreements/`)
+  agreements.value = await response.json()
 }
 
 const activeTab = ref('ALL')

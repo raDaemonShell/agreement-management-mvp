@@ -27,6 +27,7 @@
 </template>
 
 <script setup>
+import { API_URL } from '../services/api'
 import '../assets/guest.css'
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
@@ -44,8 +45,6 @@ const route = useRoute()
 const agreement = ref(null)
 const loading = ref(true)
 const currentStep = ref(1)
-
-const API_URL = 'http://127.0.0.1:8000/api'
 
 onMounted(async () => {
   try {

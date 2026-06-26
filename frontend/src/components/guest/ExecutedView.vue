@@ -116,12 +116,10 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-
+import { getAgreementPdfUrl, emailAgreementCopy } from '../../services/agreementService'
 const props = defineProps({
   agreement: Object,
 })
-
-const API_URL = 'http://127.0.0.1:8000/api'
 
 const ipAddress = ref('Fetching...')
 const device = ref('')
@@ -178,12 +176,13 @@ onMounted(async () => {
 
 async function downloadPdf() {
   downloading.value = true
+
   try {
-    const res = await fetch(`${API_URL}/agreements/${props.agreement.id}/download_pdf/`)
-    const data = await res.json()
-    window.open(data.url, '_blank')
+    const url = await getAgreementPdfUrl(props.agreement.id)
+    window.open(url, '_blank')
   } catch (err) {
-    console.error('Download error:', err)
+    console.error(err)
+    alert('Unable to download PDF.')
   } finally {
     downloading.value = false
   }
@@ -192,16 +191,14 @@ async function downloadPdf() {
 async function emailCopy() {
   emailing.value = true
   emailSent.value = false
+
   try {
-    const res = await fetch(`${API_URL}/agreements/${props.agreement.id}/email_copy/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: props.agreement.contact_email }),
-    })
-    if (!res.ok) throw new Error('Failed to send email')
+    await emailAgreementCopy(props.agreement.id, props.agreement.contact_email)
+
     emailSent.value = true
   } catch (err) {
     console.error('Email copy error:', err)
+    alert('Unable to send email.')
   } finally {
     emailing.value = false
   }

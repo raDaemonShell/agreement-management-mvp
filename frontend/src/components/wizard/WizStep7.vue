@@ -41,12 +41,11 @@
 import { inject, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatSignedDate } from '../../utils/formatters'
+import { getAgreementPdfUrl } from '../../services/agreementService'
 
 const agreement = inject('agreement')
 const router = useRouter()
 const downloading = ref(false)
-
-const API_URL = 'http://127.0.0.1:8000/api'
 
 const initiatorSignedLabel = computed(() =>
   formatSignedDate(agreement.value.initiatorSignedAt || new Date()),
@@ -59,9 +58,8 @@ function goToDashboard() {
 async function downloadPdf() {
   downloading.value = true
   try {
-    const res = await fetch(`${API_URL}/agreements/${agreement.value.id}/download_pdf/`)
-    const data = await res.json()
-    window.open(data.url, '_blank')
+    const url = await getAgreementPdfUrl(agreement.value.id)
+    window.open(url, '_blank')
   } catch (err) {
     console.error('Download error:', err)
   } finally {

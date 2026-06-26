@@ -101,6 +101,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { sendOtp, verifyOtp } from '../../services/agreementService'
 
 const otp = ref(['', '', '', '', '', ''])
 const otpRefs = ref([])
@@ -127,43 +128,42 @@ function handleBackspace(event, index) {
     otpRefs.value[index - 1]?.focus()
   }
 }
+
 async function verifyAndContinue() {
   if (!otpComplete.value) return
+
   verifying.value = true
   otpError.value = ''
 
   try {
     const code = otp.value.join('')
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/verify_otp/`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
-      },
-    )
 
-    const data = await response.json()
-
-    if (!response.ok) {
-      otpError.value = data.error || 'Invalid code. Please try again.'
-      return
-    }
+    await verifyOtp(props.agreement.id, code)
 
     emit('next')
   } catch (err) {
-    console.error('OTP verification error:', err)
-    otpError.value = 'Something went wrong. Please try again.'
+    console.error(err)
+
+    try {
+      const error = JSON.parse(err.message)
+      otpError.value = error.error || 'Invalid code.'
+    } catch {
+      otpError.value = 'Something went wrong.'
+    }
   } finally {
     verifying.value = false
   }
 }
+
 async function resendOtp() {
-  await fetch(`http://127.0.0.1:8000/api/agreements/${props.agreement.id}/send_otp/`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-  })
-  otp.value = ['', '', '', '', '', '']
-  otpError.value = ''
+  try {
+    await sendOtp(props.agreement.id)
+
+    otp.value = ['', '', '', '', '', '']
+    otpError.value = ''
+  } catch (err) {
+    console.error(err)
+    otpError.value = 'Unable to resend OTP.'
+  }
 }
 </script>

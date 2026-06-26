@@ -17,6 +17,7 @@
 </template>
 
 <script setup>
+import { API_URL } from '../services/api'
 import { ref, computed, provide, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { createAgreement, updateAgreement } from '../services/agreementService' // ← add updateAgreement
@@ -48,7 +49,7 @@ provide('step6Error', step6Error)
 provide('generating', generating)
 
 async function loadPartners() {
-  const response = await fetch('http://127.0.0.1:8000/api/partners/')
+  const response = await fetch(`${API_URL}/partners/`)
   dirCompanies.value = await response.json()
 }
 

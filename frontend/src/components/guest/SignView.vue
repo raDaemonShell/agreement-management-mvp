@@ -94,6 +94,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { signAgreement } from '../../services/agreementService'
 
 const props = defineProps({
   agreement: Object,
@@ -159,26 +160,12 @@ async function handleSign() {
   signing.value = true
 
   try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/sign/`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          signature: signature.value,
-        }),
-      },
-    )
-
-    if (!response.ok) {
-      throw new Error('Failed to sign')
-    }
+    await signAgreement(props.agreement.id, signature.value)
 
     emit('next')
   } catch (err) {
     console.error('Signing error:', err)
+    alert('Unable to sign the agreement.')
   } finally {
     signing.value = false
   }

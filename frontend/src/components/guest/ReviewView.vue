@@ -168,6 +168,7 @@
 </template>
 
 <script setup>
+import { sendOtp, getAgreementPdfUrl } from '../../services/agreementService'
 import { computed, ref } from 'vue'
 const downloading = ref(false)
 const props = defineProps({ agreement: Object })
@@ -212,34 +213,24 @@ const duration = computed(() => {
 
 async function proceedToSign() {
   sending.value = true
+
   try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/send_otp/`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' } },
-    )
-    if (!response.ok) throw new Error('Failed to send OTP')
+    await sendOtp(props.agreement.id)
+
     emit('next')
   } catch (err) {
-    console.error('OTP send error:', err)
+    console.error(err)
   } finally {
     sending.value = false
   }
 }
+
 async function downloadPdf() {
   downloading.value = true
 
   try {
-    const response = await fetch(
-      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/download_pdf/`,
-    )
-
-    if (!response.ok) {
-      throw new Error('Failed to prepare PDF')
-    }
-
-    const data = await response.json()
-
-    window.open(data.url, '_blank')
+    const url = await getAgreementPdfUrl(props.agreement.id)
+    window.open(url, '_blank')
   } catch (err) {
     console.error(err)
     alert('Unable to download PDF.')
