@@ -44,18 +44,32 @@ class AgreementViewSet(viewsets.ModelViewSet):
         response = super().partial_update(request, *args, **kwargs)
         instance.refresh_from_db()
 
+        # Generate PDF when sections are saved
         if 'section_1' in request.data or 'initiator_signed_at' in request.data:
             try:
                 generate_agreement_pdf(instance)
             except Exception as e:
                 print(f'PDF generation error: {e}')
 
+        # Send sent emails when status changes to SENT
         if previous_status != 'SENT' and instance.status == 'SENT':
             try:
                 from .emails import send_agreement_emails
                 send_agreement_emails(instance)
             except Exception as e:
                 print(f'Email error: {e}')
+
+        # Regenerate PDF and send signed emails when counterparty signs
+        if previous_status != 'SIGNED' and instance.status == 'SIGNED':
+            try:
+                generate_agreement_pdf(instance)
+            except Exception as e:
+                print(f'PDF regeneration error: {e}')
+            try:
+                from .emails import send_signed_emails
+                send_signed_emails(instance)
+            except Exception as e:
+                print(f'Signed email error: {e}')
 
         return response
 
@@ -103,3 +117,37 @@ class AgreementViewSet(viewsets.ModelViewSet):
         agreement.save(update_fields=['otp_code', 'otp_expires_at'])
 
         return Response({'message': 'Verified'})
+    
+    @action(detail=True, methods=['post'])
+    def sign(self, request, pk=None):
+        from django.utils import timezone
+        agreement = self.get_object()
+        signature = request.data.get('signature', '')
+
+        if not signature:
+            return Response({'error': 'Signature required'}, status=400)
+
+        agreement.counterparty_signature = signature
+        agreement.counterparty_signed_at = timezone.now()
+        agreement.status = 'SIGNED'
+        agreement.save(update_fields=[
+            'counterparty_signature',
+            'counterparty_signed_at',
+            'status'
+        ])
+
+        # Regenerate PDF with signature
+        try:
+            generate_agreement_pdf(agreement)
+        except Exception as e:
+            print(f'PDF error: {e}')
+
+        # Send signed emails
+        try:
+            from .emails import send_signed_emails
+            send_signed_emails(agreement)
+        except Exception as e:
+            print(f'Email error: {e}')
+
+        serializer = self.get_serializer(agreement)
+        return Response(serializer.data)

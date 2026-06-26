@@ -141,3 +141,54 @@ def send_agreement_emails(agreement):
         sg.send(initiator_mail)
 
     sg.send(counterparty_email)
+
+def send_signed_emails(agreement):
+    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+
+    signed_date = agreement.counterparty_signed_at.strftime('%b %d, %Y') if agreement.counterparty_signed_at else 'Today'
+
+    html = f"""
+    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <div style="margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #7c3aed;">
+        <div style="font-size:14px; font-weight:700; color:#111;">Varmodel</div>
+        <div style="font-size:11px; color:#9e9e9e;">Secure agreement platform</div>
+      </div>
+
+      <div style="text-align:center; margin-bottom:24px;">
+        <div style="width:52px; height:52px; border-radius:50%; background:#eaf3de;
+                    border:2px solid #97c459; margin:0 auto 12px; display:flex;
+                    align-items:center; justify-content:center; font-size:24px;">✓</div>
+        <h2 style="color:#27500a; font-size:18px; margin:0;">Agreement Fully Executed</h2>
+      </div>
+
+      <p style="color:#424242; font-size:14px; line-height:1.6; margin-bottom:16px;">
+        Both parties have signed <strong>{agreement.title}</strong>.
+      </p>
+
+      <div style="background:#eaf3de; border-left:3px solid #97c459; padding:12px 16px;
+                  border-radius:0 8px 8px 0; margin-bottom:24px;">
+        <div style="font-size:12px; color:#27500a;">
+          <strong>{agreement.initiator_name}</strong> ({agreement.initiator_company}) — Signed<br>
+          <strong>{agreement.contact_name}</strong> ({agreement.partner.company_name if agreement.partner else ''}) — Signed {signed_date}
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid #e0e0e0; margin:20px 0;">
+      <p style="font-size:10px; color:#bdbdbd; text-align:center;">
+        Sent via Varmodel &middot; Secure signing portal
+      </p>
+    </div>
+    """
+
+    recipients = [agreement.contact_email]
+    if agreement.initiator_email:
+        recipients.append(agreement.initiator_email)
+
+    for email in recipients:
+        mail = Mail(
+            from_email=settings.FROM_EMAIL,
+            to_emails=email,
+            subject=f"Agreement fully executed — {agreement.title}",
+            html_content=html
+        )
+        sg.send(mail)

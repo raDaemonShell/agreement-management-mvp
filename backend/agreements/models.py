@@ -47,6 +47,8 @@ class Agreement(models.Model):
     contact_title = models.CharField(max_length=100)
     contact_email = models.EmailField()
     contact_phone = models.CharField(max_length=30, blank=True)
+    counterparty_signature = models.CharField(max_length=200, blank=True)
+    counterparty_signed_at = models.DateTimeField(null=True, blank=True)
 
     agreement_type = models.CharField(max_length=100)
     purpose = models.CharField(max_length=100)

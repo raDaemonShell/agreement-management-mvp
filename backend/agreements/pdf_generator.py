@@ -332,15 +332,18 @@ def generate_agreement_pdf(agreement):
           </div>
           <div class="pdf-sig-box__name">{agreement.initiator_name}</div>
           <div class="pdf-sig-box__meta">
-            {initiator_signed_meta}
+            {agreement.initiator_title} &middot;
+            {agreement.created_at.strftime('%b %d, %Y')}
           </div>
         </div>
         <div class="pdf-sig-box">
           <div class="pdf-sig-box__label">Signature — {partner_name}</div>
-          <div class="pdf-sig-box__blank"></div>
+          {f'<div class="pdf-sig-box__name">{agreement.counterparty_signature}</div>'
+           if agreement.counterparty_signature
+           else '<div class="pdf-sig-box__blank"></div>'}
           <div class="pdf-sig-box__meta">
             {agreement.contact_name} &middot; {agreement.contact_title} &middot;
-            Awaiting signature
+            {agreement.counterparty_signed_at.strftime('%b %d, %Y') if agreement.counterparty_signed_at else 'Awaiting signature'}
           </div>
         </div>
       </div>
