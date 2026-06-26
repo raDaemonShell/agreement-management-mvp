@@ -195,17 +195,23 @@ async function generateAgreement() {
 }
 
 async function sendForSignature() {
+  generating.value = true
+
   try {
     ensureInitiatorSignedAt()
+
     await updateAgreement(agreement.value.id, {
       status: 'SENT',
       link_expiration_days: agreement.value.linkExpirationDays,
       initiator_signed_at: agreement.value.initiatorSignedAt,
     })
+
     agreement.value.status = 'SENT'
     currentStep.value++
   } catch (err) {
     console.error('Failed to send:', err)
+  } finally {
+    generating.value = false
   }
 }
 
@@ -264,9 +270,13 @@ async function nextStep() {
 }
 
 async function saveSectionsAndGeneratePdf() {
+  generating.value = true
+
   try {
     ensureInitiatorSignedAt()
+
     const sections = agreement.value.sections
+
     await updateAgreement(agreement.value.id, {
       section_1: sections.sec1,
       section_2: sections.sec2,
@@ -276,9 +286,12 @@ async function saveSectionsAndGeneratePdf() {
       section_6: sections.sec6,
       initiator_signed_at: agreement.value.initiatorSignedAt,
     })
+
     currentStep.value++
   } catch (err) {
     console.error('Failed to save sections:', err)
+  } finally {
+    generating.value = false
   }
 }
 

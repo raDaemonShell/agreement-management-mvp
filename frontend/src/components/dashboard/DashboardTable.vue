@@ -40,9 +40,12 @@
         </div>
 
         <div>
-          <button v-if="agreement.status === 'SIGNED'" class="vm-btn vm-btn--sm vm-btn--dl">
+          <button
+            v-if="agreement.status === 'SIGNED'"
+            class="vm-btn vm-btn--sm vm-btn--dl"
+            @click="downloadPdf(agreement.id)"
+          >
             <i class="ti ti-download"></i>
-
             PDF
           </button>
 
@@ -54,7 +57,7 @@
 </template>
 
 <script setup>
-console.log('test')
+import { getAgreementPdfUrl } from '../../services/agreementService'
 
 defineProps({
   agreements: Array,
@@ -121,6 +124,15 @@ function statusText(status) {
 
     default:
       return status
+  }
+}
+
+async function downloadPdf(id) {
+  try {
+    const url = await getAgreementPdfUrl(id)
+    window.open(url, '_blank')
+  } catch (err) {
+    console.error('Download error:', err)
   }
 }
 </script>

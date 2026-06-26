@@ -18,7 +18,7 @@
         :style="{ opacity: isGenerating ? 0.7 : 1 }"
       >
         <i v-if="isGenerating" class="ti ti-loader" style="animation: spin 1s linear infinite"></i>
-        {{ isGenerating ? 'Generating...' : nextButtonText }}
+        {{ nextButtonText }}
         <i v-if="!isGenerating" class="ti ti-arrow-right"></i>
       </button>
     </div>
@@ -36,9 +36,15 @@ defineEmits(['next', 'previous'])
 
 const generating = inject('generating', ref(false))
 
-const isGenerating = computed(() => props.currentStep === 3 && generating.value)
+const isGenerating = computed(() => generating.value)
 
 const nextButtonText = computed(() => {
+  if (isGenerating.value) {
+    if (props.currentStep === 3) return 'Generating...'
+    if (props.currentStep === 4) return 'Preparing PDF...'
+    if (props.currentStep === 6) return 'Sending...'
+  }
+
   switch (props.currentStep) {
     case 3:
       return 'Generate agreement'
