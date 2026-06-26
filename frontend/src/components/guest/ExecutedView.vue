@@ -71,12 +71,32 @@
       </div>
 
       <div class="executed-actions">
-        <button class="vm-btn flex-grow-1" style="justify-content: center">
-          <i class="ti ti-download"></i> Download signed PDF
+        <button
+          class="vm-btn flex-grow-1"
+          style="justify-content: center"
+          @click="downloadPdf"
+          :disabled="downloading"
+        >
+          <i class="ti ti-download"></i>
+          {{ downloading ? 'Preparing...' : 'Download signed PDF' }}
         </button>
-        <button class="vm-btn flex-grow-1" style="justify-content: center">
-          <i class="ti ti-mail"></i> Email me a copy
+        <button
+          class="vm-btn flex-grow-1"
+          style="justify-content: center"
+          @click="emailCopy"
+          :disabled="emailing"
+        >
+          <i class="ti ti-mail"></i>
+          {{ emailing ? 'Sending...' : 'Email me a copy' }}
         </button>
+      </div>
+
+      <!-- success message -->
+      <div
+        v-if="emailSent"
+        style="text-align: center; font-size: 12px; color: #27500a; padding: 8px 16px"
+      >
+        <i class="ti ti-circle-check"></i> Email sent to {{ agreement.contact_email }}
       </div>
 
       <div class="account-nudge">
@@ -101,9 +121,14 @@ const props = defineProps({
   agreement: Object,
 })
 
+const API_URL = 'http://127.0.0.1:8000/api'
+
 const ipAddress = ref('Fetching...')
 const device = ref('')
 const timestamp = ref('')
+const downloading = ref(false)
+const emailing = ref(false)
+const emailSent = ref(false)
 
 const fmt = (dateStr) =>
   new Date(dateStr).toLocaleDateString('en-US', {
@@ -116,7 +141,6 @@ const sentDate = computed(() => fmt(props.agreement.created_at))
 const todayDate = computed(() => fmt(new Date()))
 
 onMounted(async () => {
-  // timestamp
   timestamp.value = new Date().toLocaleString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -126,7 +150,6 @@ onMounted(async () => {
     timeZoneName: 'short',
   })
 
-  // device
   const ua = navigator.userAgent
   const browser = ua.includes('Chrome')
     ? 'Chrome'
@@ -144,7 +167,6 @@ onMounted(async () => {
         : 'Unknown OS'
   device.value = `${browser} · ${os}`
 
-  // IP
   try {
     const res = await fetch('https://api.ipify.org?format=json')
     const data = await res.json()
@@ -153,4 +175,35 @@ onMounted(async () => {
     ipAddress.value = 'Unavailable'
   }
 })
+
+async function downloadPdf() {
+  downloading.value = true
+  try {
+    const res = await fetch(`${API_URL}/agreements/${props.agreement.id}/download_pdf/`)
+    const data = await res.json()
+    window.open(data.url, '_blank')
+  } catch (err) {
+    console.error('Download error:', err)
+  } finally {
+    downloading.value = false
+  }
+}
+
+async function emailCopy() {
+  emailing.value = true
+  emailSent.value = false
+  try {
+    const res = await fetch(`${API_URL}/agreements/${props.agreement.id}/email_copy/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: props.agreement.contact_email }),
+    })
+    if (!res.ok) throw new Error('Failed to send email')
+    emailSent.value = true
+  } catch (err) {
+    console.error('Email copy error:', err)
+  } finally {
+    emailing.value = false
+  }
+}
 </script>

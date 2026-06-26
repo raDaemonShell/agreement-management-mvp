@@ -151,3 +151,19 @@ class AgreementViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(agreement)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def email_copy(self, request, pk=None):
+        agreement = self.get_object()
+        email = request.data.get('email', agreement.contact_email)
+
+        pdf_path = os.path.join(settings.MEDIA_ROOT, 'agreements', f"{agreement.id}.pdf")
+        if not os.path.exists(pdf_path):
+            return Response({'error': 'PDF not found'}, status=404)
+
+        try:
+            from .emails import send_pdf_copy_email
+            send_pdf_copy_email(agreement, email, pdf_path)
+            return Response({'message': 'Email sent'})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

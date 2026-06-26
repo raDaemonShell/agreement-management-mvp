@@ -5,6 +5,8 @@ from datetime import timedelta
 from django.conf import settings
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+import base64
+from sendgrid.helpers.mail import Mail, Attachment, FileContent, FileName, FileType, Disposition
 
 
 def generate_otp():
@@ -192,3 +194,73 @@ def send_signed_emails(agreement):
             html_content=html
         )
         sg.send(mail)
+
+def send_pdf_copy_email(agreement, to_email, pdf_path):
+    sg = SendGridAPIClient(settings.SENDGRID_API_KEY)
+
+    # Read and encode PDF
+    with open(pdf_path, 'rb') as f:
+        pdf_data = base64.b64encode(f.read()).decode()
+
+    filename = f"{agreement.title}.pdf"
+
+    mail = Mail(
+        from_email=settings.FROM_EMAIL,
+        to_emails=to_email,
+        subject=f"Your signed agreement — {agreement.title}",
+        html_content=f"""
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+          <div style="margin-bottom:24px; padding-bottom:16px; border-bottom:2px solid #7c3aed;">
+            <div style="font-size:14px; font-weight:700; color:#111;">Varmodel</div>
+            <div style="font-size:11px; color:#9e9e9e;">Secure agreement platform</div>
+          </div>
+
+          <div style="text-align:center; margin-bottom:24px;">
+            <div style="width:52px; height:52px; border-radius:50%; background:#eaf3de;
+                        border:2px solid #97c459; margin:0 auto 12px; line-height:52px;
+                        font-size:24px; color:#27500a; text-align:center;">✓</div>
+            <h2 style="color:#27500a; font-size:18px; margin:0;">
+              Signed Agreement — Your Copy
+            </h2>
+          </div>
+
+          <p style="color:#424242; font-size:14px; line-height:1.6; margin-bottom:16px;">
+            Hi <strong>{agreement.contact_name}</strong>,<br><br>
+            Please find attached your fully executed copy of
+            <strong>{agreement.title}</strong>.
+          </p>
+
+          <div style="background:#f5f5f5; border-radius:8px; padding:12px 16px;
+                      margin-bottom:24px;">
+            <div style="font-size:12px; color:#424242; line-height:1.8;">
+              <strong>Agreement:</strong> {agreement.title}<br>
+              <strong>Type:</strong> {agreement.agreement_type}<br>
+              <strong>Parties:</strong> {agreement.initiator_company} &amp; {agreement.partner.company_name if agreement.partner else agreement.contact_name}<br>
+              <strong>Period:</strong> {agreement.start_date} – {agreement.end_date}<br>
+              <strong>Governing law:</strong> {agreement.governing_law}
+            </div>
+          </div>
+
+          <p style="font-size:12px; color:#757575; line-height:1.6;">
+            Both parties have signed this agreement. Please keep this copy for your records.
+          </p>
+
+          <hr style="border:none; border-top:1px solid #e0e0e0; margin:20px 0;">
+          <p style="font-size:10px; color:#bdbdbd; text-align:center;">
+            Sent via Varmodel &middot; Secure signing portal &middot;
+            Varmodel is not a law firm. This is not legal advice.
+          </p>
+        </div>
+        """
+    )
+
+    # Attach PDF
+    attachment = Attachment(
+        FileContent(pdf_data),
+        FileName(filename),
+        FileType('application/pdf'),
+        Disposition('attachment')
+    )
+    mail.attachment = attachment
+
+    sg.send(mail)
