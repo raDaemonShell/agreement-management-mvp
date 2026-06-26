@@ -41,14 +41,41 @@
         v-for="option in expiryOptions"
         :key="option.days"
         class="expiry-chip"
-        :class="{ 'is-active': agreement.linkExpirationDays === option.days }"
-        @click="agreement.linkExpirationDays = option.days"
+        :class="{ 'is-active': !customMode && agreement.linkExpirationDays === option.days }"
+        @click="selectExpiry(option.days)"
       >
         {{ option.label }}
       </div>
+      <div class="expiry-chip" :class="{ 'is-active': customMode }" @click="customMode = true">
+        Custom
+      </div>
     </div>
 
-    <div class="vm-notice vm-notice--info">
+    <!-- custom days input -->
+    <div v-if="customMode" style="margin-top: 8px; display: flex; align-items: center; gap: 8px">
+      <input
+        class="vm-input"
+        type="number"
+        min="1"
+        max="365"
+        v-model.number="customDays"
+        style="width: 80px"
+        placeholder="Days"
+        @input="agreement.linkExpirationDays = customDays"
+      />
+      <span style="font-size: 12px; color: var(--neutral-7)">days</span>
+      <button class="vm-btn vm-btn--sm" @click="customMode = false">Cancel</button>
+    </div>
+    <div
+      v-if="step6Error"
+      class="vm-notice vm-notice--warning"
+      style="margin-top: 8px; border-radius: var(--radius-md)"
+    >
+      <i class="ti ti-alert-circle" style="font-size: 14px; flex-shrink: 0"></i>
+      <div>Please set a valid link expiration before sending.</div>
+    </div>
+
+    <div class="vm-notice vm-notice--info" style="margin-top: 16px">
       <i class="ti ti-mail"></i> Recipient ({{ agreement.contactName }}) can forward this link to
       legal counsel for review before signing.
     </div>
@@ -60,21 +87,10 @@ import { inject, ref, computed, onMounted } from 'vue'
 import { formatSignedDate } from '../../utils/formatters'
 
 const agreement = inject('agreement')
+const step6Error = inject('step6Error', ref(false))
 const copied = ref(false)
-
-function ensureInitiatorSignedAt() {
-  if (!agreement.value.initiatorSignedAt) {
-    agreement.value.initiatorSignedAt = new Date().toISOString()
-  }
-}
-
-const initiatorSignedLabel = computed(() =>
-  formatSignedDate(agreement.value.initiatorSignedAt || new Date()),
-)
-
-onMounted(() => {
-  ensureInitiatorSignedAt()
-})
+const customMode = ref(false)
+const customDays = ref(30)
 
 const expiryOptions = [
   { days: 3, label: '3 days' },
@@ -82,7 +98,30 @@ const expiryOptions = [
   { days: 14, label: '14 days' },
 ]
 
-// ← remove selectExpiry, chip just updates local state
+function selectExpiry(days) {
+  customMode.value = false
+  agreement.value.linkExpirationDays = days
+}
+
+function ensureInitiatorSignedAt() {
+  if (!agreement.value.initiatorSignedAt) {
+    agreement.value.initiatorSignedAt = new Date().toISOString()
+  }
+}
+
+// Generate shareable link when step 6 mounts
+onMounted(() => {
+  ensureInitiatorSignedAt()
+
+  if (agreement.value.id && !agreement.value.shareableLink) {
+    agreement.value.shareableLink = `${window.location.origin}/sign/${agreement.value.id}`
+  }
+})
+
+const initiatorSignedLabel = computed(() =>
+  formatSignedDate(agreement.value.initiatorSignedAt || new Date()),
+)
+
 async function copyLink() {
   try {
     await navigator.clipboard.writeText(agreement.value.shareableLink)

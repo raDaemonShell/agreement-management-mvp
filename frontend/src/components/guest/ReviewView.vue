@@ -99,7 +99,9 @@
 
         <div class="d-flex gap-2 mt-3">
           <button class="vm-btn vm-btn--sm"><i class="ti ti-share"></i> Forward to counsel</button>
-          <button class="vm-btn vm-btn--sm"><i class="ti ti-download"></i> Download PDF</button>
+          <button class="vm-btn vm-btn--sm" @click="downloadPdf" :disabled="downloading">
+            {{ downloading ? 'Preparing...' : 'Download PDF' }}
+          </button>
         </div>
       </div>
 
@@ -167,7 +169,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-
+const downloading = ref(false)
 const props = defineProps({ agreement: Object })
 const emit = defineEmits(['next'])
 const sending = ref(false)
@@ -221,6 +223,28 @@ async function proceedToSign() {
     console.error('OTP send error:', err)
   } finally {
     sending.value = false
+  }
+}
+async function downloadPdf() {
+  downloading.value = true
+
+  try {
+    const response = await fetch(
+      `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/download_pdf/`,
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to prepare PDF')
+    }
+
+    const data = await response.json()
+
+    window.open(data.url, '_blank')
+  } catch (err) {
+    console.error(err)
+    alert('Unable to download PDF.')
+  } finally {
+    downloading.value = false
   }
 }
 </script>

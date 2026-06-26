@@ -157,6 +157,25 @@
         </div>
       </div>
     </div>
+    <!-- validation error -->
+    <div
+      v-if="step1Error"
+      class="vm-notice vm-notice--warning"
+      style="margin-top: 16px; border-radius: var(--radius-md)"
+    >
+      <i class="ti ti-alert-circle" style="font-size: 14px; flex-shrink: 0"></i>
+      <div>
+        Please fill in all required fields before continuing:
+        <ul style="margin-top: 4px; padding-left: 16px; font-size: 11px">
+          <li v-if="!agreement.partner">Select a partner company</li>
+          <li v-if="!agreement.contactName?.trim()">Contact name is required</li>
+          <li v-if="!agreement.contactTitle?.trim()">Contact job title is required</li>
+          <li v-if="!agreement.contactEmail?.trim()">Contact email is required</li>
+          <li v-if="!agreement.initiatorName?.trim()">Your name is required</li>
+          <li v-if="!agreement.initiatorTitle?.trim()">Your title is required</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -166,7 +185,7 @@ import { ref, computed, inject } from 'vue'
 const searchOpen = ref(false)
 const dirCompanies = inject('dirCompanies', ref([]))
 const selectedPartners = ref([])
-
+const step1Error = inject('step1Error', ref(false))
 const searchText = ref('')
 
 const searchMatches = computed(() => {

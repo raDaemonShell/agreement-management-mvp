@@ -80,7 +80,8 @@
           :disabled="!canSign"
           :style="{ opacity: canSign ? 1 : 0.5 }"
         >
-          <i class="ti ti-writing" style="font-size: 16px"></i> Sign &amp; execute agreement
+          <i class="ti ti-writing" style="font-size: 16px"></i>
+          {{ signing ? 'Signing...' : 'Sign & Execute Agreement' }}
         </button>
         <div style="font-size: 10px; color: var(--neutral-5); text-align: center; line-height: 1.5">
           Varmodel is not a law firm. This is not legal advice. Audit data is shared with both
@@ -105,7 +106,7 @@ const confirmed = ref(false)
 const ipAddress = ref('Fetching...')
 const device = ref('')
 const timestamp = ref('')
-
+const signing = ref(false)
 const canSign = computed(() => signature.value.trim().length > 0 && confirmed.value)
 
 const fmt = (dateStr) =>
@@ -155,23 +156,31 @@ onMounted(async () => {
 async function handleSign() {
   if (!canSign.value) return
 
+  signing.value = true
+
   try {
     const response = await fetch(
       `http://127.0.0.1:8000/api/agreements/${props.agreement.id}/sign/`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           signature: signature.value,
         }),
       },
     )
 
-    if (!response.ok) throw new Error('Failed to sign')
+    if (!response.ok) {
+      throw new Error('Failed to sign')
+    }
 
     emit('next')
   } catch (err) {
     console.error('Signing error:', err)
+  } finally {
+    signing.value = false
   }
 }
 </script>

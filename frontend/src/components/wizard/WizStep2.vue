@@ -40,13 +40,21 @@
         PDF or DOCX, max 10MB
       </div>
     </div>
+    <div
+      v-if="step2Error"
+      class="vm-notice vm-notice--warning"
+      style="margin-top: 16px; border-radius: var(--radius-md)"
+    >
+      <i class="ti ti-alert-circle" style="font-size: 14px; flex-shrink: 0"></i>
+      <div>Please select an agreement type before continuing.</div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { inject } from 'vue'
-
+import { inject, ref } from 'vue'
 const agreement = inject('agreement')
+const step2Error = inject('step2Error', ref(false))
 
 const agreementTypes = [
   {
@@ -92,9 +100,8 @@ const agreementTypes = [
 
 function selectAgreement(type) {
   agreement.value.agreementType = type.value
-
   agreement.value.agreementTypeTitle = type.title
-
   agreement.value.agreementTypeDescription = type.description
+  step2Error.value = false
 }
 </script>

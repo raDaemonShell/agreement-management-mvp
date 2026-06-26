@@ -35,6 +35,18 @@ const currentStep = ref(1)
 const router = useRouter()
 const dirCompanies = ref([])
 
+const step1Error = ref(false)
+const step2Error = ref(false)
+const step3Error = ref(false)
+const step6Error = ref(false)
+const generating = ref(false)
+
+provide('step1Error', step1Error)
+provide('step2Error', step2Error)
+provide('step3Error', step3Error)
+provide('step6Error', step6Error)
+provide('generating', generating)
+
 async function loadPartners() {
   const response = await fetch('http://127.0.0.1:8000/api/partners/')
   dirCompanies.value = await response.json()
@@ -101,6 +113,52 @@ function ensureInitiatorSignedAt() {
   }
 }
 
+function validateStep1() {
+  const a = agreement.value
+  return (
+    a.partner !== null &&
+    a.contactName.trim() !== '' &&
+    a.contactTitle.trim() !== '' &&
+    a.contactEmail.trim() !== '' &&
+    a.initiatorName.trim() !== '' &&
+    a.initiatorTitle.trim() !== ''
+  )
+}
+function validateStep2() {
+  return agreement.value.agreementType !== ''
+}
+function validateStep3() {
+  const a = agreement.value
+  return (
+    a.purpose !== '' &&
+    a.intellectualProperty !== '' &&
+    a.startDate !== '' &&
+    a.endDate !== '' &&
+    a.governingLaw !== '' &&
+    new Date(a.endDate) > new Date(a.startDate)
+  )
+}
+function validateStep6() {
+  return agreement.value.linkExpirationDays > 0
+}
+
+// sanitize — strips dangerous characters
+function sanitize(val) {
+  if (!val) return ''
+  return val.trim().replace(/[<>]/g, '')
+}
+
+// sanitize all text inputs before saving
+function sanitizeAgreement() {
+  const a = agreement.value
+  a.contactName = sanitize(a.contactName)
+  a.contactTitle = sanitize(a.contactTitle)
+  a.contactEmail = sanitize(a.contactEmail)
+  a.contactPhone = sanitize(a.contactPhone)
+  a.initiatorName = sanitize(a.initiatorName)
+  a.initiatorTitle = sanitize(a.initiatorTitle)
+}
+
 async function generateAgreement() {
   try {
     const payload = {
@@ -126,13 +184,12 @@ async function generateAgreement() {
       status: agreement.value.status,
     }
     const response = await createAgreement(payload)
-
     agreement.value.id = response.id
-    agreement.value.shareableLink = `${window.location.origin}/sign/${response.id}`
-
     currentStep.value++
   } catch (error) {
     console.error('Failed to generate:', error)
+  } finally {
+    generating.value = false
   }
 }
 
@@ -152,7 +209,30 @@ async function sendForSignature() {
 }
 
 async function nextStep() {
+  if (currentStep.value === 1) {
+    if (!validateStep1()) {
+      step1Error.value = true
+      return
+    }
+    step1Error.value = false
+    sanitizeAgreement()
+  }
+
+  if (currentStep.value === 2) {
+    if (!validateStep2()) {
+      step2Error.value = true
+      return
+    }
+    step2Error.value = false
+  }
+
   if (currentStep.value === 3) {
+    if (!validateStep3()) {
+      step3Error.value = true
+      return
+    }
+    step3Error.value = false
+    generating.value = true
     await generateAgreement()
     return
   }
@@ -163,6 +243,11 @@ async function nextStep() {
   }
 
   if (currentStep.value === 6) {
+    if (!validateStep6()) {
+      step6Error.value = true
+      return
+    }
+    step6Error.value = false
     await sendForSignature()
     return
   }
