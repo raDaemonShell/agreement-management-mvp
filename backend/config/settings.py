@@ -79,8 +79,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # ── CORS ──
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-CORS_ALLOWED_ORIGINS = [frontend_url]
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip('/')
+CORS_ALLOWED_ORIGINS = [
+    frontend_url,
+    "http://localhost:5173",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
 
 # ── Internationalization ──
 LANGUAGE_CODE = 'en-us'
