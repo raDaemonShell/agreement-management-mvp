@@ -7,6 +7,8 @@ from .serializers import AgreementSerializer, PartnerSerializer
 from .pdf_generator import generate_agreement_pdf
 from django.utils import timezone
 import os
+from django.http import JsonResponse
+import subprocess
 
 
 @api_view(['GET'])
@@ -167,3 +169,25 @@ class AgreementViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Email sent'})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+    def check_weasyprint(request):
+        packages = {}
+
+        for cmd, name in [
+            (["fc-list"], "Fonts"),
+            (["ldd", "--version"], "GLIBC"),
+            (["dpkg", "-l"], "Installed packages"),
+        ]:
+            try:
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                packages[name] = result.stdout[:3000]
+            except Exception as e:
+                packages[name] = str(e)
+
+        return JsonResponse(packages)
