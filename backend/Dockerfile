@@ -24,8 +24,10 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
+RUN chmod +x start.sh
+
 RUN python manage.py collectstatic --noinput
 
 EXPOSE 10000
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:10000"]
+CMD ["./start.sh"]
