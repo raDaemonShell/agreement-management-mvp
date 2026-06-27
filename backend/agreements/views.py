@@ -76,17 +76,18 @@ class AgreementViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def download_pdf(self, request, pk=None):
         agreement = self.get_object()
-        pdf_path = os.path.join(settings.MEDIA_ROOT, 'agreements', f"{agreement.id}.pdf")
-        if not os.path.exists(pdf_path):
-            try:
-                generate_agreement_pdf(agreement)
-            except Exception as e:
-                return Response({'error': str(e)}, status=500)
-        pdf_url = request.build_absolute_uri(
-            f"{settings.MEDIA_URL}agreements/{agreement.id}.pdf"
-        )
-        return Response({'url': pdf_url})
-    
+
+        # Return stored Cloudinary URL if exists
+        if agreement.pdf_url:
+            return Response({'url': agreement.pdf_url})
+
+        # Regenerate if missing
+        try:
+            url = generate_agreement_pdf(agreement)
+            return Response({'url': url})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
     @action(detail=True, methods=['post'])
     def send_otp(self, request, pk=None):
         agreement = self.get_object()
@@ -157,14 +158,19 @@ class AgreementViewSet(viewsets.ModelViewSet):
         agreement = self.get_object()
         email = request.data.get('email', agreement.contact_email)
 
-        pdf_path = os.path.join(settings.MEDIA_ROOT, 'agreements', f"{agreement.id}.pdf")
-        if not os.path.exists(pdf_path):
-            return Response({'error': 'PDF not found'}, status=404)
+        # Regenerate if no URL stored
+        if not agreement.pdf_url:
+            try:
+                generate_agreement_pdf(agreement)
+            except Exception as e:
+                return Response({'error': f'PDF generation failed: {str(e)}'}, status=500)
 
         try:
             from .emails import send_pdf_copy_email
-            send_pdf_copy_email(agreement, email, pdf_path)
+            send_pdf_copy_email(agreement, email, agreement.pdf_url)
             return Response({'message': 'Email sent'})
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             return Response({'error': str(e)}, status=500)
     

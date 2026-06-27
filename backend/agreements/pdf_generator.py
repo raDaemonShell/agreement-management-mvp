@@ -1,7 +1,9 @@
 import os
+import tempfile
+import cloudinary.uploader
 from django.conf import settings
 from django.utils import timezone
-from weasyprint import HTML, CSS
+from weasyprint import HTML
 
 
 def format_initiator_signed_meta(agreement):
@@ -14,10 +16,6 @@ def format_initiator_signed_meta(agreement):
 
 
 def generate_agreement_pdf(agreement):
-    pdf_dir = os.path.join(settings.MEDIA_ROOT, 'agreements')
-    os.makedirs(pdf_dir, exist_ok=True)
-    filepath = os.path.join(pdf_dir, f"{agreement.id}.pdf")
-
     partner_name = agreement.partner.company_name if agreement.partner else 'N/A'
     partner_loc = agreement.partner.location if agreement.partner else ''
 
@@ -40,9 +38,7 @@ def generate_agreement_pdf(agreement):
     <meta charset="utf-8">
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
       * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-
       body {{
         font-family: Roboto, sans-serif;
         font-size: 10px;
@@ -50,8 +46,6 @@ def generate_agreement_pdf(agreement):
         padding: 40px;
         line-height: 1.5;
       }}
-
-      /* Title */
       .pdf-title {{
         font-size: 16px;
         font-weight: 700;
@@ -67,14 +61,11 @@ def generate_agreement_pdf(agreement):
         color: #9e9e9e;
         margin-bottom: 16px;
       }}
-
       hr {{
         border: none;
         border-top: 1px solid #e0e0e0;
         margin-bottom: 16px;
       }}
-
-      /* Parties */
       .pdf-parties {{
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -127,8 +118,6 @@ def generate_agreement_pdf(agreement):
         font-size: 9px;
         color: #757575;
       }}
-
-      /* Sections */
       .pdf-sec {{ margin-bottom: 12px; }}
       .pdf-sec__title {{
         font-size: 9px;
@@ -145,8 +134,6 @@ def generate_agreement_pdf(agreement):
         color: #757575;
         line-height: 1.6;
       }}
-
-      /* AI block */
       .pdf-ai-block {{
         background: #ede9fe;
         border-left: 2px solid #7c3aed;
@@ -167,8 +154,6 @@ def generate_agreement_pdf(agreement):
         color: #3c3489;
         line-height: 1.6;
       }}
-
-      /* Signature row */
       .pdf-sig-row {{
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -203,8 +188,6 @@ def generate_agreement_pdf(agreement):
         font-size: 8px;
         color: #9e9e9e;
       }}
-
-      /* Disclaimer */
       .pdf-disclaimer {{
         font-size: 8px;
         color: #9e9e9e;
@@ -212,50 +195,9 @@ def generate_agreement_pdf(agreement):
         border-top: 1px solid #e0e0e0;
         padding-top: 10px;
       }}
-
-      /* Varmodel header bar */
-      .pdf-header-bar {{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 24px;
-        padding-bottom: 12px;
-        border-bottom: 2px solid #7c3aed;
-      }}
-      .pdf-header-bar__logo {{
-        width: 28px;
-        height: 28px;
-        border-radius: 7px;
-        background: #7c3aed;
-        color: #ede9fe;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        font-weight: 700;
-      }}
-      .pdf-header-bar__name {{
-        font-size: 14px;
-        font-weight: 700;
-        color: #111111;
-      }}
-      .pdf-header-bar__sub {{
-        font-size: 10px;
-        color: #9e9e9e;
-      }}
-      .pdf-draft-badge {{
-        background: #ede9fe;
-        color: #7c3aed;
-        font-size: 9px;
-        font-weight: 700;
-        padding: 3px 10px;
-        border-radius: 100px;
-      }}
     </style>
     </head>
     <body>
-
-      <!-- Title -->
       <div class="pdf-title">{agreement_type_title}</div>
       <div class="pdf-subtitle">
         Generated via Varmodel &middot; Draft &middot;
@@ -264,7 +206,6 @@ def generate_agreement_pdf(agreement):
       </div>
       <hr>
 
-      <!-- Parties -->
       <div class="pdf-parties">
         <div class="pdf-party">
           <div class="pdf-party__badge">Disclosing Party</div>
@@ -281,60 +222,46 @@ def generate_agreement_pdf(agreement):
           <div class="pdf-party__name">{partner_name}</div>
           <div class="pdf-party__loc">{partner_loc}</div>
           <div class="pdf-party__contact">
-          <div class="pdf-party__contact-badge">Signing contact</div>
-          <div class="pdf-party__contact-name">{agreement.contact_name}</div>
-          <div class="pdf-party__contact-title">{agreement.contact_title}</div>
+            <div class="pdf-party__contact-badge">Signing contact</div>
+            <div class="pdf-party__contact-name">{agreement.contact_name}</div>
+            <div class="pdf-party__contact-title">{agreement.contact_title}</div>
           </div>
         </div>
       </div>
 
-<!-- Section 1 -->
       <div class="pdf-sec">
         <div class="pdf-sec__title">1. Parties</div>
         <div class="pdf-sec__body">{agreement.section_1 or f"This {agreement_type_title} is entered into between {agreement.initiator_company or agreement.initiator_name} and {partner_name}, represented by {agreement.initiator_name} and {agreement.contact_name}."}</div>
       </div>
-
-      <!-- Section 2 -->
       <div class="pdf-sec">
         <div class="pdf-sec__title">2. Confidential Information</div>
         <div class="pdf-sec__body">{agreement.section_2 or '"Confidential Information" means any non-public information disclosed by either Party, including trade secrets, business plans, financial data, and technical information in any form...'}</div>
       </div>
-
-      <!-- Section 3 -->
       <div class="pdf-sec">
         <div class="pdf-sec__title">3. Obligations</div>
         <div class="pdf-sec__body">{agreement.section_3 or f"Each Party agrees to hold the other's Confidential Information in strict confidence, use it solely for the {agreement.purpose}, and not disclose to any third party without prior written consent..."}</div>
       </div>
-
-      <!-- Section 4 -->
       <div class="pdf-sec">
         <div class="pdf-sec__title">4. Term</div>
         <div class="pdf-sec__body">{agreement.section_4 or f"This Agreement shall remain in effect from {agreement.start_date} to {agreement.end_date}, governed by {agreement.governing_law} law."}</div>
       </div>
-
-      <!-- Section 5 -->
       <div class="pdf-sec">
         <div class="pdf-sec__title">5. Remedies</div>
         <div class="pdf-sec__body">{agreement.section_5 or "Each Party acknowledges that breach may cause irreparable harm, entitling the non-breaching Party to seek equitable relief in addition to legal remedies..."}</div>
       </div>
 
-      <!-- Section 6 AI block -->
       <div class="pdf-ai-block">
         <div class="pdf-ai-block__label">&#10022; Section 6 — Special Provisions (AI-assisted)</div>
         <div class="pdf-ai-block__body">{agreement.section_6 or f"{partner_name} will protect {agreement.intellectual_property} throughout the duration of this agreement for {agreement.purpose} under {agreement.governing_law} law."}</div>
       </div>
 
-      <!-- Signatures -->
       <div class="pdf-sig-row">
         <div class="pdf-sig-box">
           <div class="pdf-sig-box__label">
             Signature — {agreement.initiator_company or agreement.initiator_name}
           </div>
           <div class="pdf-sig-box__name">{agreement.initiator_name}</div>
-          <div class="pdf-sig-box__meta">
-            {agreement.initiator_title} &middot;
-            {agreement.created_at.strftime('%b %d, %Y')}
-          </div>
+          <div class="pdf-sig-box__meta">{initiator_signed_meta}</div>
         </div>
         <div class="pdf-sig-box">
           <div class="pdf-sig-box__label">Signature — {partner_name}</div>
@@ -348,17 +275,38 @@ def generate_agreement_pdf(agreement):
         </div>
       </div>
 
-      <!-- Disclaimer -->
       <div class="pdf-disclaimer">
         &#9888; Generated as a starting point. Varmodel Inc is not a law firm and this is not
         legal advice. Consult an attorney prior to execution.
       </div>
-
     </body>
     </html>
     """
 
-    HTML(
-        string=html_content,
-        base_url=settings.BASE_DIR,
-    ).write_pdf(filepath)
+    # Generate to temp file
+    with tempfile.NamedTemporaryFile(suffix='.pdf', delete=False) as tmp:
+        tmp_path = tmp.name
+
+    try:
+        HTML(string=html_content).write_pdf(tmp_path)
+
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            tmp_path,
+            resource_type='raw',
+            folder='varmodel/agreements',
+            public_id=str(agreement.id),
+            overwrite=True,
+        )
+
+        # Save URL to agreement
+        pdf_url = result['secure_url']
+        agreement.pdf_url = pdf_url
+        agreement.save(update_fields=['pdf_url'])
+
+        return pdf_url
+
+    finally:
+        # Always clean up temp file
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
