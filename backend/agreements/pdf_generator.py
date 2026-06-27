@@ -297,6 +297,7 @@ def generate_agreement_pdf(agreement):
             folder='varmodel/agreements',
             public_id=str(agreement.id),
             overwrite=True,
+            access_mode='public',
         )
 
         # Save URL to agreement
