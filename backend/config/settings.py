@@ -29,7 +29,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",")
+allowed = os.getenv("ALLOWED_HOSTS", "")
+ALLOWED_HOSTS = [h.strip() for h in allowed.split(",") if h.strip()]
 
 
 # Application definition
@@ -108,9 +109,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    os.getenv("FRONTEND_URL"),
-]
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+CORS_ALLOWED_ORIGINS = [frontend_url]
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
