@@ -7,10 +7,6 @@ from .views import home, check_weasyprint, test_pdf
 
 urlpatterns = [
     path('', home),
-
-    path('check-weasyprint/', check_weasyprint),
-    path('test-pdf/', test_pdf),
-
     path('admin/', admin.site.urls),
     path('api/', include('agreements.urls')),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
