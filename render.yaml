@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: agreement-management-backend
+    runtime: docker
+    rootDir: backend
+    plan: free
+    dockerfilePath: ./Dockerfile
