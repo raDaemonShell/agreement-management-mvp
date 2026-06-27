@@ -7,6 +7,8 @@ from weasyprint import HTML
 
 
 def format_initiator_signed_meta(agreement):
+    print(f"Starting PDF generation for {agreement.id}")
+    print(f"Cloudinary config: cloud={cloudinary.config().cloud_name}")
     signed_at = agreement.initiator_signed_at or agreement.created_at
     local = timezone.localtime(signed_at) if timezone.is_aware(signed_at) else signed_at
     date_str = local.strftime('%b %d, %Y')
@@ -289,6 +291,7 @@ def generate_agreement_pdf(agreement):
 
     try:
         HTML(string=html_content).write_pdf(tmp_path)
+        print(f"PDF written to temp file: {tmp_path}")
 
         # Upload to Cloudinary
         result = cloudinary.uploader.upload(
@@ -299,9 +302,10 @@ def generate_agreement_pdf(agreement):
             overwrite=True,
             access_mode='public',
         )
-
+        print(f"Cloudinary upload result: {result}")
         # Save URL to agreement
         pdf_url = result['secure_url']
+        print(f"PDF URL: {pdf_url}")
         agreement.pdf_url = pdf_url
         agreement.save(update_fields=['pdf_url'])
 
