@@ -14,6 +14,10 @@ from django.http import HttpResponse
 from weasyprint import HTML
 import traceback
 
+from django.http import HttpResponse
+from weasyprint import HTML
+import traceback
+
 def test_pdf(request):
     try:
         print("Starting WeasyPrint...")
@@ -35,12 +39,7 @@ def test_pdf(request):
             "WeasyPrint failed. Check Render logs.",
             status=500
         )
-
 def check_weasyprint(request):
     return JsonResponse({
         "status": "WeasyPrint imported successfully"
     })
-
-def test_pdf(request):
-    print("===== TEST PDF VIEW EXECUTED =====")
-    return HttpResponse("TEST PDF WORKS")
