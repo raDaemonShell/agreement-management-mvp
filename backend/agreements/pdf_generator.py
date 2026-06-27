@@ -358,5 +358,7 @@ def generate_agreement_pdf(agreement):
     </html>
     """
 
-    HTML(string=html_content).write_pdf(filepath)
-    return filepath
+    HTML(
+        string=html_content,
+        base_url=settings.BASE_DIR,
+    ).write_pdf(filepath)
