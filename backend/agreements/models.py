@@ -77,3 +77,6 @@ class Agreement(models.Model):
     # OTP email
     otp_code = models.CharField(max_length=6, blank=True)
     otp_expires_at = models.DateTimeField(null=True, blank=True)
+
+    
+    pdf_url = models.URLField(blank=True)
