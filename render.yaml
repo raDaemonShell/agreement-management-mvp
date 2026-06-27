@@ -5,3 +5,4 @@ services:
     rootDir: backend
     plan: free
     dockerfilePath: ./Dockerfile
+    preDeployCommand: python manage.py migrate && python create_admin.py
